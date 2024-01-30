@@ -37,10 +37,10 @@ jobs:
         pip install pip-tools
 
     - name: Pip Compile
-        run: |
-          rm -f requirements.txt
-          pip-compile requirements.in -o requirements.txt
-          pip install -r requirements.txt
+      run: |
+        rm -f requirements.txt
+        pip-compile requirements.in -o requirements.txt
+        pip install -r requirements.txt
 
 
     #- name: Download package
