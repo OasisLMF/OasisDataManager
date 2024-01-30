@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from lot3.df_reader.exceptions import InvalidSQLException
-from lot3.df_reader.reader import OasisDaskReaderParquet, OasisPandasReaderParquet
-from lot3.filestore.backends.local import LocalStorage
+from oasis_data_manager.df_reader.exceptions import InvalidSQLException
+from oasis_data_manager.df_reader.reader import OasisDaskReaderParquet, OasisPandasReaderParquet
+from oasis_data_manager.filestore.backends.local import LocalStorage
 
 READERS = [OasisPandasReaderParquet, OasisDaskReaderParquet]
 

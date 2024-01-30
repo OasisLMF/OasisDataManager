@@ -11,7 +11,7 @@ def get_version():
     Return package version as listed in `__version__` in `init.py`.
     """
     with open(
-        os.path.join(SCRIPT_DIR, "lot3", "__init__.py"), encoding="utf-8"
+        os.path.join(SCRIPT_DIR, "oasis_data_manager", "__init__.py"), encoding="utf-8"
     ) as init_py:
         return re.search("__version__ = ['\"]([^'\"]+)['\"]", init_py.read()).group(1)
 
@@ -27,7 +27,7 @@ version = get_version()
 
 
 setup(
-    name="lot3",
+    name="oasis-data-manager",
     version=version,
     packages=find_packages(exclude=("tests", "tests.*", "tests.*.*")),
     include_package_data=True,
@@ -43,7 +43,7 @@ setup(
     description="",
     long_description="",
     long_description_content_type="text/markdown",
-    url="https://github.com/OasisLMF/OasisPlatformLot3",
+    url="https://github.com/OasisLMF/OasisDataManager",
     author="Oasis LMF",
     author_email="support@oasislmf.org",
     keywords="",

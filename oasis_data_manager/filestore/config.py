@@ -4,9 +4,9 @@ from typing import Optional, Tuple, TypedDict, Union
 
 from typing_extensions import NotRequired
 
-from lot3.config import ConfigError, load_class
-from lot3.filestore.backends.base import BaseStorage
-from lot3.filestore.backends.local import LocalStorage
+from oasis_data_manager.config import ConfigError, load_class
+from oasis_data_manager.filestore.backends.base import BaseStorage
+from oasis_data_manager.filestore.backends.local import LocalStorage
 
 
 class BaseStorageConfig(TypedDict):

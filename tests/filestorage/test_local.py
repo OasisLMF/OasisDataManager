@@ -1,7 +1,7 @@
 from tempfile import TemporaryDirectory
 
-from lot3.filestore.backends.local import LocalStorage
-from lot3.filestore.config import get_storage_from_config
+from oasis_data_manager.filestore.backends.local import LocalStorage
+from oasis_data_manager.filestore.config import get_storage_from_config
 
 
 def test_no_root_dir_is_set___root_dir_is_root():

@@ -2,7 +2,7 @@ import pytest
 import respx
 from httpx import ConnectError, Response
 
-from lot3.complex.complex import RestComplexData
+from oasis_data_manager.complex.complex import RestComplexData
 
 
 class TestRestComplexData(RestComplexData):

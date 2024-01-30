@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from lot3.df_reader.reader import OasisDaskReader, OasisPandasReader, OasisReader
-from lot3.filestore.backends.local import LocalStorage
+from oasis_data_manager.df_reader.reader import OasisDaskReader, OasisPandasReader, OasisReader
+from oasis_data_manager.filestore.backends.local import LocalStorage
 
 READERS = [OasisDaskReader, OasisPandasReader]
 

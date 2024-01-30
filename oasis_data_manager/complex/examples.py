@@ -3,9 +3,9 @@
 import h5py
 import pandas as pd
 
-from lot3.complex.complex import Adjustment, FileStoreComplexData
-from lot3.df_reader.reader import OasisDaskReader
-from lot3.filestore.backends.local import LocalStorage
+from oasis_data_manager.complex.complex import Adjustment, FileStoreComplexData
+from oasis_data_manager.df_reader.reader import OasisDaskReader
+from oasis_data_manager.filestore.backends.local import LocalStorage
 
 
 class AddColAdjustment(Adjustment):

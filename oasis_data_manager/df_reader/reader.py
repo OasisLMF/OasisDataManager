@@ -23,7 +23,7 @@ from .exceptions import InvalidSQLException
 dask.config.set(
     {"dataframe.convert-string": False}
 )  # allows dask sql to support pyarrow
-logger = logging.getLogger("lot3.df_reader.reader")
+logger = logging.getLogger("oasis_data_manager.df_reader.reader")
 
 
 class OasisReader:

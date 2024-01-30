@@ -1,7 +1,7 @@
 import pytest
 
-from lot3.df_reader.config import ConfigError, OasisReader, get_df_reader
-from lot3.df_reader.reader import OasisPandasReader
+from oasis_data_manager.df_reader.config import ConfigError, OasisReader, get_df_reader
+from oasis_data_manager.df_reader.reader import OasisPandasReader
 
 
 class DfReader(OasisReader):
@@ -16,7 +16,7 @@ class NotDfReader:
 
 config = {
     "default": {
-        "path": "lot3.df_reader.reader.OasisPandasReader",
+        "path": "oasis_data_manager.df_reader.reader.OasisPandasReader",
         "options": {},
     },
     "test": {
