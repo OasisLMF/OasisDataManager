@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 import pandas as pd
 import pytest
 
-from lot3.complex.complex import FileStoreComplexData
+from oasis_data_manager.complex.complex import FileStoreComplexData
 from tests.filestorage.test_general import (
     aws_s3_storage,
     azure_abfs_storage,

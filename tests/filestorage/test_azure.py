@@ -3,8 +3,8 @@ import uuid
 
 import urllib3
 
-from lot3.filestore.backends.azure_abfs import AzureABFSStorage
-from lot3.filestore.config import get_storage_from_config
+from oasis_data_manager.filestore.backends.azure_abfs import AzureABFSStorage
+from oasis_data_manager.filestore.config import get_storage_from_config
 
 
 def make_storage(**kwargs):

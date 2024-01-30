@@ -8,9 +8,9 @@ import httpcore
 import httpx
 import pandas as pd
 
-from lot3.df_reader.config import InputReaderConfig, clean_config, get_df_reader
-from lot3.df_reader.reader import OasisReader
-from lot3.filestore.backends.local import LocalStorage
+from oasis_data_manager.df_reader.config import InputReaderConfig, clean_config, get_df_reader
+from oasis_data_manager.df_reader.reader import OasisReader
+from oasis_data_manager.filestore.backends.local import LocalStorage
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ class ComplexData:
         df_reader_config = clean_config(
             InputReaderConfig(
                 filepath=filepath,
-                engine="lot3.df_reader.reader.OasisDaskReader",
+                engine="oasis_data_manager.df_reader.reader.OasisDaskReader",
             )
         )
         df_reader_config["engine"]["options"]["storage"] = self.storage

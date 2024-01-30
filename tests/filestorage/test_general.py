@@ -8,9 +8,9 @@ import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import text
 
-from lot3.filestore.backends.aws_s3 import AwsS3Storage
-from lot3.filestore.backends.azure_abfs import AzureABFSStorage
-from lot3.filestore.backends.local import LocalStorage
+from oasis_data_manager.filestore.backends.aws_s3 import AwsS3Storage
+from oasis_data_manager.filestore.backends.azure_abfs import AzureABFSStorage
+from oasis_data_manager.filestore.backends.local import LocalStorage
 
 test_file_name = "test_file.txt"
 test_dir_name = "test_dir"

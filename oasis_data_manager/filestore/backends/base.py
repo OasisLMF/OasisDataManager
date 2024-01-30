@@ -15,7 +15,7 @@ from urllib.request import urlopen
 import fsspec
 from fsspec.implementations.dirfs import DirFileSystem
 
-from lot3.errors import OasisException
+from oasis_data_manager.errors import OasisException
 
 LOG_FILE_SUFFIX = "txt"
 ARCHIVE_FILE_SUFFIX = "tar.gz"

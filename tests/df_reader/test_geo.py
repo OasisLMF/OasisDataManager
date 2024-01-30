@@ -6,13 +6,13 @@ import pandas as pd
 import pytest
 from shapely.geometry import Point
 
-from lot3.df_reader.reader import (
+from oasis_data_manager.df_reader.reader import (
     OasisDaskReaderCSV,
     OasisDaskReaderParquet,
     OasisPandasReaderCSV,
     OasisPandasReaderParquet,
 )
-from lot3.filestore.backends.local import LocalStorage
+from oasis_data_manager.filestore.backends.local import LocalStorage
 
 READERS = [
     OasisPandasReaderCSV,

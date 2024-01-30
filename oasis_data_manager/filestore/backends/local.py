@@ -1,7 +1,7 @@
 import contextlib
 from pathlib import Path
 
-from lot3.filestore.backends.base import BaseStorage, MissingInputsException
+from oasis_data_manager.filestore.backends.base import BaseStorage, MissingInputsException
 
 
 class LocalStorage(BaseStorage):
