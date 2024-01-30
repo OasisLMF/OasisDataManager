@@ -41,7 +41,7 @@ jobs:
     #  run: pip install ${{ needs.build.outputs.whl_filename }}
 
     - name: Install test deps
-      run: pip install -r tests/requirements.in
+      run: pip install -r requirements.in
 
     - name: Run tests
       run: pytest -v
