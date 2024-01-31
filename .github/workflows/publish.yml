@@ -1,4 +1,4 @@
-name: ODS-tools Release
+name: OasisDataManager Release
 
 on:
   workflow_dispatch:
