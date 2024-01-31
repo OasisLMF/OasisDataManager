@@ -115,13 +115,7 @@ jobs:
         git checkout ${{ github.ref_name }}
         git tag ${{ env.RELEASE_TAG }}
 
-    # --- Create Changelog --- #
-    - name: Setup python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-
-    # --- Sign packages --- #
+    # --- get packages --- #
     - name: Download Source package
       uses: actions/download-artifact@v3
       with:
@@ -148,7 +142,7 @@ jobs:
       with:
         tag_name: ${{ env.RELEASE_TAG }}
         release_name: Release ${{ env.RELEASE_TAG }}
-        body_path: ${{ github.workspace }}/RELEASE.md
+        #body_path: ${{ github.workspace }}/RELEASE.md
         draft: false
         prerelease: ${{ env.PRE_RELEASE }}
 
