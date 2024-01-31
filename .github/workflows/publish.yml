@@ -6,9 +6,9 @@ on:
       release_tag:
         description: 'Release tag to publish as [semvar]'
         required: true
-      prev_release_tag:
-        description: 'The previous release version [semvar]'
-        required: true
+      #prev_release_tag:
+      #  description: 'The previous release version [semvar]'
+      #  required: true
       pre_release:
         description: 'Mark GitHub release as pre-release: [true, false]'
         required: true
@@ -16,7 +16,7 @@ on:
 
 env:
   RELEASE_TAG: ${{ inputs.release_tag }}
-  PREV_RELEASE_TAG: ${{ inputs.prev_release_tag }}
+  #PREV_RELEASE_TAG: ${{ inputs.prev_release_tag }}
   PRE_RELEASE: ${{ inputs.pre_release }}
 
 
