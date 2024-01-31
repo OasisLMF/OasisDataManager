@@ -36,7 +36,6 @@ jobs:
       if: inputs.odm_branch == ''
       with:
         repository: OasisLMF/OasisDataManager
-        ref: ${{ github.ref_name }}
 
     - name: Clone (workflow_call)
       uses: actions/checkout@v3
