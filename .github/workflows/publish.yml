@@ -6,13 +6,10 @@ on:
       release_tag:
         description: 'Release tag to publish as [semvar]'
         required: true
-      #prev_release_tag:
-      #  description: 'The previous release version [semvar]'
-      #  required: true
       pre_release:
         description: 'Mark GitHub release as pre-release: [true, false]'
         required: true
-        default: 'false'
+        type: boolean
 
 env:
   RELEASE_TAG: ${{ inputs.release_tag }}
@@ -46,11 +43,11 @@ jobs:
 
 
     steps:
-    #- name: is branch valid for release
-    #  if: ${{ !startsWith(github.ref_name , 'release/') }}
-    #  run: |
-    #    echo "Releases must be trigged on branch named 'release/x.x.x'"
-    #    exit 1
+    - name: is branch valid for release
+      if: ${{ !startsWith(github.ref_name , 'release/') }}
+      run: |
+        echo "Releases must be trigged on branch named 'release/x.x.x'"
+        exit 1
 
     - name: Check tag is valid for release
       if: env.PRE_RELEASE == 'false'
