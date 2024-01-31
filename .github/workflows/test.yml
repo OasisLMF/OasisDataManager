@@ -53,4 +53,6 @@ jobs:
     #  run: pip install ${{ needs.build.outputs.whl_filename }}
 
     - name: Run tests
-      run: pytest -v
+      run: |
+        docker-compose up -d
+        pytest -v
