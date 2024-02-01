@@ -1,4 +1,4 @@
--r ./requirements-package.in
+-r ./requirements-package.txt
 
 pytest
 pytest-cov
