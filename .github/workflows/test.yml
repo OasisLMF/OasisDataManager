@@ -37,9 +37,9 @@ jobs:
 
     - name: Pip Compile
       run: |
-        rm -f requirements.txt requirements-package.txt
-        pip-compile requirements-package.in -o requirements-package.txt --resolver=backtracking
-        pip-compile requirements.in -o requirements.txt --resolver=backtracking
+        #rm -f requirements.txt requirements-package.txt
+        #pip-compile requirements-package.in -o requirements-package.txt --resolver=backtracking
+        #pip-compile requirements.in -o requirements.txt --resolver=backtracking
         pip install -r requirements.txt
 
     - name: Download package
