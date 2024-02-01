@@ -6,7 +6,7 @@ from dask import dataframe as dd
 
 from oasis_data_manager.complex.complex import Adjustment, ComplexData
 from oasis_data_manager.df_reader.reader import OasisReader
-from oasis_data_manager.filestore.backends.local import LocalStorage
+# from oasis_data_manager.filestore.backends.local import LocalStorage
 
 
 @pytest.fixture(autouse=True)

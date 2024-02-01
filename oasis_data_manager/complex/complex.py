@@ -1,5 +1,4 @@
 import logging
-import os
 import pathlib
 from io import BytesIO
 from typing import List, Type

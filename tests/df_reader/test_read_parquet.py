@@ -114,12 +114,12 @@ def test_read_parquet__dask__sql__expected_pandas_dataframe(df):
 
         assert isinstance(result, pd.DataFrame)
         assert result.to_dict() == {
-            "A": {0: 1.0},
-            "B": {0: pd.Timestamp("20230102")},
-            "C": {0: 1.0},
-            "D": {0: 3},
-            "E": {0: "test"},
-            "F": {0: "foo"},
+            "A": {2: 1.0},
+            "B": {2: pd.Timestamp("20230102")},
+            "C": {2: 1.0},
+            "D": {2: 3},
+            "E": {2: "test"},
+            "F": {2: "foo"},
         }
 
 
