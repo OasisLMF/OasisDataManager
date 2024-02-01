@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - develop  
       - stable**
   workflow_dispatch:
 
