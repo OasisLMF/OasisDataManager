@@ -12,6 +12,7 @@ from oasis_data_manager.filestore.backends.local import LocalStorage
 
 storage = LocalStorage("/")
 
+
 @pytest.fixture
 def df():
     return pd.DataFrame(
@@ -253,6 +254,7 @@ def test_sql__result__aggregation__sum(df):
         "E": {0: "test", 1: "train", 2: "else", 3: "other"},
         "sum_A": {0: 2.0, 1: 2.0, 2: 1.0, 3: 1.0},
     }
+
 
 @pytest.mark.skip(reason="SQL feature needs fix")
 def test_sql__result__joined(df, joinable_df):
