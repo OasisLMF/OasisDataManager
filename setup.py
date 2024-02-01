@@ -27,7 +27,7 @@ def get_optional_requirements():
     with open(
         os.path.join(SCRIPT_DIR, "optional-package.in"), encoding="utf-8"
     ) as reqs:
-        return reqs.readlines()
+        return {"extra": reqs.readlines()}
 
 
 version = get_version()

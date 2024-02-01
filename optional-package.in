@@ -3,6 +3,7 @@ boto3
 dask
 dask-geopandas
 dask-sql
+distributed
 geopandas
 pyogrio
 s3fs>=2023.9.0
