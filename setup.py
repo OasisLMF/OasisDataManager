@@ -23,6 +23,13 @@ def get_install_requirements():
         return reqs.readlines()
 
 
+def get_optional_requirements():
+    with open(
+        os.path.join(SCRIPT_DIR, "optional-package.in"), encoding="utf-8"
+    ) as reqs:
+        return reqs.readlines()
+
+
 version = get_version()
 
 
@@ -49,6 +56,7 @@ setup(
     keywords="",
     python_requires=">=3.6",
     install_requires=get_install_requirements(),
+    extras_require=get_optional_requirements(),
     classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: BSD License",
