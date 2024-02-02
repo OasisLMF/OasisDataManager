@@ -1,4 +1,5 @@
 fastparquet
 fsspec
 pandas
+typing
 typing_extensions

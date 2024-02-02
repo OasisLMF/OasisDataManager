@@ -66,13 +66,13 @@ jobs:
     - name: Store source package
       uses: actions/upload-artifact@v3
       with:
-        name: src_package
+        name: odm_src_package
         path: ./dist/${{ steps.build_package.outputs.source }}
         retention-days: 5
 
     - name: Store Wheel package
       uses: actions/upload-artifact@v3
       with:
-        name: bin_package
+        name: odm_bin_package
         path: ./dist/${{ steps.build_package.outputs.wheel }}
         retention-days: 5

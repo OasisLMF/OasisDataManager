@@ -45,7 +45,7 @@ jobs:
     - name: Download package
       uses: actions/download-artifact@v3
       with:
-        name: bin_package
+        name: odm_bin_package
         path: ${{ github.workspace }}/
 
     - name: install package
