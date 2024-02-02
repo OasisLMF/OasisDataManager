@@ -13,13 +13,10 @@ __all__ = [
     to be provided.
 """
 
-import logging
-
 from .backends.base import OasisReader
 from .backends.pandas import OasisPandasReader, OasisPandasReaderCSV, OasisPandasReaderParquet
 
 try:
     from .backends.dask import OasisDaskReader, OasisDaskReaderCSV, OasisDaskReaderParquet
 except ModuleNotFoundError as e:
-    logger = logging.getLogger(__name__)
-    logger.exception(f"Failed to import DaskReader, {e}")
+    pass
