@@ -67,10 +67,9 @@ def clean_config(config: Union[str, InputReaderConfig]) -> ResolvedReaderConfig:
 
 def get_df_reader(config, *args, **kwargs):
     config = clean_config(config)
-
     cls = load_class(config["engine"]["path"], OasisReader)
-
     storage = config["engine"]["options"].pop("storage", None) or LocalStorage("/")
+
     return cls(
         config["filepath"], storage, *args, **kwargs, **config["engine"]["options"]
     )

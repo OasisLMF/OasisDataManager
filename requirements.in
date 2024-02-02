@@ -1,5 +1,4 @@
--r ./requirements-package.txt
-
+converter
 pytest
 pytest-cov
 flake8
@@ -15,3 +14,5 @@ respx
 geodatasets
 ipdb
 h5py
+-r requirements-package.in
+-r optional-package.in

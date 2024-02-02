@@ -1,12 +1,4 @@
-pandas
-geopandas
-dask
-dask-geopandas
-dask-sql
-distributed
 fastparquet
-pyogrio
 fsspec
-boto3
-s3fs>=2023.9.0
-adlfs
+pandas
+typing_extensions

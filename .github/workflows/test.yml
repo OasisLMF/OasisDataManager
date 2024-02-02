@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - develop  
       - stable**
   workflow_dispatch:
 
@@ -32,13 +33,13 @@ jobs:
     - name: Install pip-tools
       run: |
         python -m pip install --upgrade pip
-        pip install pip-tools
+        pip install pip-tools setuptools-rust
 
     - name: Pip Compile
       run: |
-        rm -f requirements.txt requirements-package.txt
-        pip-compile requirements-package.in -o requirements-package.txt --resolver=backtracking
-        pip-compile requirements.in -o requirements.txt --resolver=backtracking
+        rm -f requirements.txt
+        #pip-compile requirements-package.in -o requirements-package.txt --resolver=backtracking
+        pip-compile requirements.in -o requirements.txt
         pip install -r requirements.txt
 
     - name: Download package
