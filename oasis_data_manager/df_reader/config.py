@@ -1,9 +1,14 @@
 import json
+import sys
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, TypedDict, Union
 
-from typing_extensions import NotRequired
+if sys.version_info >= (3, 8):
+    from typing import Any, Dict, TypedDict, Union
+    from typing_extensions import NotRequired
+else:
+    from typing import Any, Dict, Union
+    from typing_extensions import NotRequired, TypedDict
 
 from ..config import ConfigError, load_class
 from ..filestore.backends.local import LocalStorage
