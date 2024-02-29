@@ -1,5 +1,5 @@
 fastparquet
-fsspec
+fsspec>=2023.12.2
 pandas
 typing
 typing_extensions
