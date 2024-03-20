@@ -246,6 +246,13 @@ class BaseStorage(object):
         :return: Absolute filepath to stored Object
         :rtype str
         """
+        # null ref given
+        if not reference:
+            if required:
+                raise MissingInputsException(reference)
+            else:
+                return None
+
         target = os.path.abspath(
             os.path.join(output_path, subdir) if subdir else output_path
         )
