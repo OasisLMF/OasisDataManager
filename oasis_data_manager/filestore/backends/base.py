@@ -310,12 +310,14 @@ class BaseStorage(object):
         if os.path.isfile(reference):
             ext = "".join(Path(reference).suffixes) if not suffix else suffix
             filename = filename if filename else self._get_unique_filename(ext)
-            storage_path = os.path.join(subdir, filename) if subdir else filename
+            storage_path = subdir if subdir else ''
             self.fs.mkdirs(os.path.dirname(storage_path), exist_ok=True)
+            storage_location = os.path.join(storage_path, filename)
 
-            self.logger.info("Store file: {} -> {}".format(reference, storage_path))
-            self.fs.put(reference, storage_path)
-            return storage_path
+            self.logger.info("Store file: {} -> {}".format(reference, storage_location))
+            self.fs.put(reference, storage_location)
+            return storage_location
+
         elif os.path.isdir(reference):
             ext = "tar.gz" if not suffix else suffix
             filename = filename if filename else self._get_unique_filename(ext)
