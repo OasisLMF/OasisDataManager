@@ -105,6 +105,8 @@ class BaseStorage(object):
         :return: filename string
         :rtype str
         """
+        if suffix.startswith('.'):
+            suffix = suffix[1:]
         return "{}.{}".format(uuid.uuid4().hex, suffix)
 
     def _is_valid_url(self, url):
