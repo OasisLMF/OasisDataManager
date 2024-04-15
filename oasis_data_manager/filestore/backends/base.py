@@ -305,17 +305,21 @@ class BaseStorage(object):
         if not reference:
             return None
 
-        ext = "tar.gz" if not suffix else suffix
-        filename = filename if filename else self._get_unique_filename(ext)
-        storage_path = os.path.join(subdir, filename) if subdir else filename
-
-        self.fs.mkdirs(os.path.dirname(storage_path), exist_ok=True)
-
         if os.path.isfile(reference):
+            ext = "".join(Path(reference).suffixes) if not suffix else suffix
+            filename = filename if filename else self._get_unique_filename(ext)
+            storage_path = os.path.join(subdir, filename) if subdir else filename
+            self.fs.mkdirs(os.path.dirname(storage_path), exist_ok=True)
+
             self.logger.info("Store file: {} -> {}".format(reference, storage_path))
             self.fs.put(reference, storage_path)
             return storage_path
         elif os.path.isdir(reference):
+            ext = "tar.gz" if not suffix else suffix
+            filename = filename if filename else self._get_unique_filename(ext)
+            storage_path = os.path.join(subdir, filename) if subdir else filename
+            self.fs.mkdirs(os.path.dirname(storage_path), exist_ok=True)
+
             self.logger.info("Store dir: {} -> {}".format(reference, storage_path))
             with tempfile.NamedTemporaryFile() as f:
                 self.compress(f.name, reference, arcname)
