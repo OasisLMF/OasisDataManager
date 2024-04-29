@@ -41,6 +41,8 @@ jobs:
         #pip-compile requirements-package.in -o requirements-package.txt --resolver=backtracking
         pip-compile requirements.in -o requirements.txt
         pip install -r requirements.txt
+        # TEST 
+        pip install dask==2024.4.1
 
     - name: Download package
       uses: actions/download-artifact@v3
