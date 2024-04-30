@@ -1,9 +1,9 @@
 adlfs
 boto3
-dask
+dask<=2024.1.1
 dask-geopandas
 dask-sql
 distributed
 geopandas
 pyogrio
-s3fs
+s3fs>=2023.12.2
