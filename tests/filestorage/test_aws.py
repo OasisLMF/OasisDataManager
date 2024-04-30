@@ -16,6 +16,7 @@ def make_storage(**kwargs):
     kwargs.setdefault("secret_key", "ANYTHING")
     kwargs.setdefault("endpoint_url", "http://localhost:4566")
     kwargs.setdefault("cache_dir", None)
+    kwargs.setdefault("region_name", "eu-central-1")
 
     fs = AwsS3Storage(**kwargs)
     fs.fs.mkdirs("")

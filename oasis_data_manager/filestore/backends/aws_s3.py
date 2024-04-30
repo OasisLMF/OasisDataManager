@@ -178,6 +178,7 @@ class AwsS3Storage(BaseStorage):
             "s3_additional_kwargs": s3_additional_kwargs,
             "client_kwargs": {
                 "endpoint_url": self.endpoint_url,
+                "region_name": self.region_name,
             },
         }
 
