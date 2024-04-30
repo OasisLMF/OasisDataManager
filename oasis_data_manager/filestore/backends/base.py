@@ -105,6 +105,8 @@ class BaseStorage(object):
         :return: filename string
         :rtype str
         """
+        if suffix.startswith('.'):
+            suffix = suffix[1:]
         return "{}.{}".format(uuid.uuid4().hex, suffix)
 
     def _is_valid_url(self, url):
@@ -246,6 +248,13 @@ class BaseStorage(object):
         :return: Absolute filepath to stored Object
         :rtype str
         """
+        # null ref given
+        if not reference:
+            if required:
+                raise MissingInputsException(reference)
+            else:
+                return None
+
         target = os.path.abspath(
             os.path.join(output_path, subdir) if subdir else output_path
         )
@@ -298,17 +307,23 @@ class BaseStorage(object):
         if not reference:
             return None
 
-        ext = "tar.gz" if not suffix else suffix
-        filename = filename if filename else self._get_unique_filename(ext)
-        storage_path = os.path.join(subdir, filename) if subdir else filename
-
-        self.fs.mkdirs(os.path.dirname(storage_path), exist_ok=True)
-
         if os.path.isfile(reference):
-            self.logger.info("Store file: {} -> {}".format(reference, storage_path))
-            self.fs.put(reference, storage_path)
-            return storage_path
+            ext = "".join(Path(reference).suffixes) if not suffix else suffix
+            filename = filename if filename else self._get_unique_filename(ext)
+            storage_path = subdir if subdir else ''
+            self.fs.mkdirs(os.path.dirname(storage_path), exist_ok=True)
+            storage_location = os.path.join(storage_path, filename)
+
+            self.logger.info("Store file: {} -> {}".format(reference, storage_location))
+            self.fs.put(reference, storage_location)
+            return storage_location
+
         elif os.path.isdir(reference):
+            ext = "tar.gz" if not suffix else suffix
+            filename = filename if filename else self._get_unique_filename(ext)
+            storage_path = os.path.join(subdir, filename) if subdir else filename
+            self.fs.mkdirs(os.path.dirname(storage_path), exist_ok=True)
+
             self.logger.info("Store dir: {} -> {}".format(reference, storage_path))
             with tempfile.NamedTemporaryFile() as f:
                 self.compress(f.name, reference, arcname)
