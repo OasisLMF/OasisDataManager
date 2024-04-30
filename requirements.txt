@@ -390,8 +390,6 @@ types-s3transfer==0.10.0
     # via boto3-stubs
 types-setuptools==69.1.0.20240229
     # via -r requirements.in
-typing==3.7.4.3
-    # via -r requirements-package.in
 typing-extensions==4.10.0
     # via
     #   -r requirements-package.in
