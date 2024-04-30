@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - develop  
+      - develop
       - stable**
   workflow_dispatch:
 
@@ -20,7 +20,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11.8"]
 
     steps:
     - uses: actions/checkout@v3
@@ -37,8 +37,7 @@ jobs:
 
     - name: Pip Compile
       run: |
-        rm -f requirements.txt
-        #pip-compile requirements-package.in -o requirements-package.txt --resolver=backtracking
+        rm requirements.txt
         pip-compile requirements.in -o requirements.txt
         pip install -r requirements.txt
 
