@@ -15,4 +15,4 @@ geodatasets
 ipdb
 h5py
 -r requirements-package.in
--r optional-package.in
+# -r optional-package.in

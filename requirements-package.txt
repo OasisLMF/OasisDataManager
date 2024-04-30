@@ -4,285 +4,31 @@
 #
 #    pip-compile --output-file=requirements-package.txt requirements-package.in
 #
-adlfs==2023.8.0
-    # via -r requirements-package.in
-aiobotocore==2.5.4
-    # via s3fs
-aiohttp==3.8.5
-    # via
-    #   adlfs
-    #   aiobotocore
-    #   s3fs
-aioitertools==0.11.0
-    # via aiobotocore
-aiosignal==1.3.1
-    # via aiohttp
-annotated-types==0.5.0
-    # via pydantic
-anyio==3.7.1
-    # via
-    #   httpcore
-    #   starlette
-async-timeout==4.0.3
-    # via aiohttp
-attrs==23.1.0
-    # via
-    #   aiohttp
-    #   fiona
-azure-core==1.29.3
-    # via
-    #   adlfs
-    #   azure-identity
-    #   azure-storage-blob
-azure-datalake-store==0.0.53
-    # via adlfs
-azure-identity==1.14.0
-    # via adlfs
-azure-storage-blob==12.17.0
-    # via adlfs
-boto3==1.28.17
-    # via -r requirements-package.in
-botocore==1.31.17
-    # via
-    #   aiobotocore
-    #   boto3
-    #   s3transfer
-certifi==2023.7.22
-    # via
-    #   fiona
-    #   httpcore
-    #   httpx
-    #   pyogrio
-    #   pyproj
-    #   requests
-cffi==1.15.1
-    # via
-    #   azure-datalake-store
-    #   cryptography
-charset-normalizer==3.2.0
-    # via
-    #   aiohttp
-    #   requests
-click==8.1.7
-    # via
-    #   click-plugins
-    #   cligj
-    #   dask
-    #   distributed
-    #   fiona
-    #   uvicorn
-click-plugins==1.1.1
-    # via fiona
-cligj==0.7.2
-    # via fiona
-cloudpickle==2.2.1
-    # via
-    #   dask
-    #   distributed
 cramjam==2.7.0
     # via fastparquet
-cryptography==41.0.3
-    # via
-    #   azure-identity
-    #   azure-storage-blob
-    #   msal
-    #   pyjwt
-dask[dataframe]==2023.7.1
-    # via
-    #   -r requirements-package.in
-    #   dask-geopandas
-    #   dask-sql
-    #   distributed
-dask-geopandas==0.3.1
-    # via -r requirements-package.in
-dask-sql==2023.8.0
-    # via -r requirements-package.in
-distributed==2023.7.1
-    # via
-    #   -r requirements-package.in
-    #   dask-geopandas
-    #   dask-sql
-fastapi==0.103.0
-    # via dask-sql
 fastparquet==2023.7.0
     # via -r requirements-package.in
-fiona==1.9.4.post1
-    # via geopandas
-frozenlist==1.4.0
-    # via
-    #   aiohttp
-    #   aiosignal
-fsspec==2023.9.0
+fsspec==2024.3.1
     # via
     #   -r requirements-package.in
-    #   adlfs
-    #   dask
     #   fastparquet
-    #   s3fs
-geopandas==0.13.2
-    # via
-    #   -r requirements-package.in
-    #   dask-geopandas
-h11==0.14.0
-    # via
-    #   httpcore
-    #   uvicorn
-httpcore==0.17.3
-    # via httpx
-httpx==0.24.1
-    # via dask-sql
-idna==3.4
-    # via
-    #   anyio
-    #   httpx
-    #   requests
-    #   yarl
-importlib-metadata==6.8.0
-    # via dask
-isodate==0.6.1
-    # via azure-storage-blob
-jinja2==3.1.2
-    # via distributed
-jmespath==1.0.1
-    # via
-    #   boto3
-    #   botocore
-locket==1.0.0
-    # via
-    #   distributed
-    #   partd
-markupsafe==2.1.3
-    # via jinja2
-msal==1.23.0
-    # via
-    #   azure-datalake-store
-    #   azure-identity
-    #   msal-extensions
-msal-extensions==1.0.0
-    # via azure-identity
-msgpack==1.0.5
-    # via distributed
-multidict==6.0.4
-    # via
-    #   aiohttp
-    #   yarl
 numpy==1.25.2
     # via
-    #   dask
     #   fastparquet
     #   pandas
-    #   pyogrio
-    #   shapely
 packaging==23.1
-    # via
-    #   dask
-    #   dask-geopandas
-    #   distributed
-    #   fastparquet
-    #   geopandas
+    # via fastparquet
 pandas==2.1.0
     # via
     #   -r requirements-package.in
-    #   dask
-    #   dask-sql
     #   fastparquet
-    #   geopandas
-partd==1.4.0
-    # via dask
-portalocker==2.7.0
-    # via msal-extensions
-prompt-toolkit==3.0.39
-    # via dask-sql
-psutil==5.9.5
-    # via distributed
-pycparser==2.21
-    # via cffi
-pydantic==2.3.0
-    # via fastapi
-pydantic-core==2.6.3
-    # via pydantic
-pygments==2.16.1
-    # via dask-sql
-pyjwt[crypto]==2.8.0
-    # via
-    #   msal
-    #   pyjwt
-pyogrio==0.6.0
-    # via -r requirements-package.in
-pyproj==3.6.0
-    # via geopandas
 python-dateutil==2.8.2
-    # via
-    #   botocore
-    #   pandas
+    # via pandas
 pytz==2023.3
     # via pandas
-pyyaml==6.0.1
-    # via
-    #   dask
-    #   distributed
-requests==2.31.0
-    # via
-    #   azure-core
-    #   azure-datalake-store
-    #   msal
-s3fs==2023.9.0
-    # via -r requirements-package.in
-s3transfer==0.6.2
-    # via boto3
-shapely==2.0.1
-    # via geopandas
 six==1.16.0
-    # via
-    #   azure-core
-    #   fiona
-    #   isodate
-    #   python-dateutil
-sniffio==1.3.0
-    # via
-    #   anyio
-    #   httpcore
-    #   httpx
-sortedcontainers==2.4.0
-    # via distributed
-starlette==0.27.0
-    # via fastapi
-tabulate==0.9.0
-    # via dask-sql
-tblib==2.0.0
-    # via distributed
-toolz==0.12.0
-    # via
-    #   dask
-    #   distributed
-    #   partd
-tornado==6.3.3
-    # via distributed
+    # via python-dateutil
 typing-extensions==4.7.1
-    # via
-    #   azure-core
-    #   azure-storage-blob
-    #   fastapi
-    #   pydantic
-    #   pydantic-core
+    # via -r requirements-package.in
 tzdata==2023.3
     # via pandas
-tzlocal==5.0.1
-    # via dask-sql
-urllib3==1.26.16
-    # via
-    #   botocore
-    #   distributed
-    #   requests
-uvicorn==0.23.2
-    # via dask-sql
-wcwidth==0.2.6
-    # via prompt-toolkit
-wrapt==1.15.0
-    # via aiobotocore
-yarl==1.9.2
-    # via aiohttp
-zict==3.0.0
-    # via distributed
-zipp==3.16.2
-    # via importlib-metadata
