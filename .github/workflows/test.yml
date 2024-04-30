@@ -37,6 +37,7 @@ jobs:
 
     - name: Pip Compile
       run: |
+        rm requirements.txt
         pip-compile requirements.in -o requirements.txt
         pip install -r requirements.txt
 
