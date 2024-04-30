@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - develop  
+      - develop
       - stable**
   workflow_dispatch:
 
@@ -37,9 +37,9 @@ jobs:
 
     - name: Pip Compile
       run: |
-        rm -f requirements.txt
-        #pip-compile requirements-package.in -o requirements-package.txt --resolver=backtracking
-        pip-compile requirements.in -o requirements.txt
+        # rm -f requirements.txt
+        # pip-compile requirements-package.in -o requirements-package.txt --resolver=backtracking
+        # pip-compile requirements.in -o requirements.txt
         pip install -r requirements.txt
 
     - name: Download package
