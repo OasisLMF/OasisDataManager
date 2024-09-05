@@ -114,13 +114,13 @@ jobs:
 
     # --- get packages --- #
     - name: Download Source package
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: odm_src_package
         path: ${{ github.workspace }}/
 
     - name: Download Linux package
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: odm_bin_package
         path: ${{ github.workspace }}/
