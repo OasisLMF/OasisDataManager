@@ -52,5 +52,5 @@ jobs:
 
     - name: Run tests
       run: |
-        docker-compose up -d
+        docker compose up -d
         pytest
