@@ -64,11 +64,22 @@ class OasisReader:
     def _read(self):
         if not self.has_read:
             if hasattr(self.filename_or_buffer, "name"):
-                extension = pathlib.Path(self.filename_or_buffer.name).suffix
+                parts = pathlib.Path(self.filename_or_buffer.name).parts
             else:
-                extension = pathlib.Path(self.filename_or_buffer).suffix
+                parts = pathlib.Path(self.filename_or_buffer).parts
 
-            if extension in [".parquet", ".pq"]:
+            for part in parts:
+                for extension in [".parquet", ".pq"]:
+                    if part.endswith(extension):
+                        is_parquet = True
+                        break
+                else:
+                    continue  # if parquet extension is found the outer break will be called exiting the for with is_parquet = True
+                break
+            else:
+                is_parquet = False
+
+            if is_parquet:
                 self.has_read = True
                 self.read_parquet(*self.reader_args, **self.reader_kwargs)
             else:
