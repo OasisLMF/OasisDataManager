@@ -6,6 +6,7 @@ __all__ = [
     'OasisDaskReader',
     'OasisDaskReaderCSV',
     'OasisDaskReaderParquet',
+    'OasisPyarrowReader',
 ]
 
 """
@@ -15,6 +16,7 @@ __all__ = [
 
 from .backends.base import OasisReader
 from .backends.pandas import OasisPandasReader, OasisPandasReaderCSV, OasisPandasReaderParquet
+from .backends.pyarrow import OasisPyarrowReader
 
 try:
     from .backends.dask import OasisDaskReader, OasisDaskReaderCSV, OasisDaskReaderParquet
