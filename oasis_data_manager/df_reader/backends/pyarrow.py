@@ -6,13 +6,8 @@ from .base import OasisReader
 
 class OasisPyarrowReader(OasisReader):
 
-
-
     def read_parquet(self, *args, **kwargs):
-
-
         def pyarrow_dataset_filter(pandas_filter):
-
             def pyarrow_dataset_single_filter(pandas_single_filter):
                 op_map = {
                     "==": lambda x, y: ds.field(x) == y,
@@ -53,17 +48,11 @@ class OasisPyarrowReader(OasisReader):
 
             return new_filter
 
+
         if 'filters' in kwargs:
             ds_filter = pyarrow_dataset_filter(kwargs['filters'])
         else:
             ds_filter = None
-        """""
-        dataset = ds.dataset(self.filename_or_buffer, partitioning='hive')
-        self.df = dataset.to_table(filter=ds_filter).to_pandas()
-        """
-
-        #raise Exception(f'this should run')
-        #print('this should also cause issues')
 
         if isinstance(self.filename_or_buffer, str):
             if self.filename_or_buffer.startswith(
@@ -76,33 +65,8 @@ class OasisPyarrowReader(OasisReader):
                     self.filename_or_buffer, encode_params=False
                 )
 
-                # LocalStorage: specifying file system does not perform well
-                """""
-                if uri.startswith('file://'):
-                    uri = uri.replace('file://', '')
-                    dataset = ds.dataset(uri, partitioning='hive')
-                else:
-                    dataset = ds.dataset(self.filename_or_buffer, partitioning='hive', filesystem=self.storage.fs)
-                self.df = dataset.to_table(filter=ds_filter).to_pandas()
-                """
-
-
-                uri = uri.replace('file://', '') # unsupported hostname otherwise
-                #uri = uri.replace('file://static/', '')  # needed if using filesystem option (other option - use filename_or_buffer
-
-                #self.df = pd.read_parquet(
-                #    uri,
-                #    *args,
-                #    **kwargs,
-                #    storage_options=self.storage.get_fsspec_storage_options(),
-                #)
-                # Look into storage options, something like filesystem=self.storage.get_fsspec_storage_options()
-
-                #dataset = ds.dataset(self.filename_or_buffer, partitioning='hive', filesystem=self.storage.fs)
-                # this option works (and should be okay for local/s3/etc), but slow (1 event/sec
-
+                uri = uri.replace('file://', '') 
                 dataset = ds.dataset(uri, partitioning='hive')
-
                 self.df = dataset.to_table(filter=ds_filter).to_pandas()
 
         else:
