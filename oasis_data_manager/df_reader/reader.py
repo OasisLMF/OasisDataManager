@@ -16,7 +16,11 @@ __all__ = [
 
 from .backends.base import OasisReader
 from .backends.pandas import OasisPandasReader, OasisPandasReaderCSV, OasisPandasReaderParquet
-from .backends.pyarrow import OasisPyarrowReader
+
+try:
+    from .backends.pyarrow import OasisPyarrowReader
+except ModuleNotFoundError as e:
+    pass
 
 try:
     from .backends.dask import OasisDaskReader, OasisDaskReaderCSV, OasisDaskReaderParquet
