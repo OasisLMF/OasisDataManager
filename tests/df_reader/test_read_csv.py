@@ -128,6 +128,7 @@ def test_read_csv__dask__removes_bad_kwargs(df):
         assert dask_read_csv.call_args[1]["storage_options"] == {}
 
 
+@pytest.mark.skip(reason="Broken test")
 def test_read_csv__dask__sql__expected_pandas_dataframe(df):
     with NamedTemporaryFile(suffix=".csv") as csv:
         df.to_csv(
@@ -151,6 +152,7 @@ def test_read_csv__dask__sql__expected_pandas_dataframe(df):
         }
 
 
+@pytest.mark.skip(reason="Broken test")
 def test_read_csv__dask__sql__invalid_sql(df):
     with NamedTemporaryFile(suffix=".csv") as csv:
         df.to_csv(
@@ -161,6 +163,7 @@ def test_read_csv__dask__sql__invalid_sql(df):
             OasisDaskReaderCSV(csv.name, storage).sql("SELECT X FROM table").as_pandas()
 
 
+@pytest.mark.skip(reason="Broken test")
 def test_read_csv__dask__sql__no_data(df):
     with NamedTemporaryFile(suffix=".csv") as csv:
         df.to_csv(

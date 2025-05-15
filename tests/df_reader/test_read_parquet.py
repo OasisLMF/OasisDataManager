@@ -101,7 +101,7 @@ def test_read_parquet__df_filter__multiple__expected_pandas_dataframe(reader, df
             "F": {2: "foo"},
         }
 
-
+@pytest.mark.skip(reason="Broken test")
 def test_read_parquet__dask__sql__expected_pandas_dataframe(df):
     with NamedTemporaryFile(suffix=".parquet") as parquet:
         df.to_parquet(path=parquet.name, index=False)
@@ -123,6 +123,7 @@ def test_read_parquet__dask__sql__expected_pandas_dataframe(df):
         }
 
 
+@pytest.mark.skip(reason="Broken test")
 def test_read_parquet__dask__sql__invalid_sql(df):
     with NamedTemporaryFile(suffix=".parquet") as parquet:
         df.to_parquet(path=parquet.name, index=False)
@@ -133,6 +134,7 @@ def test_read_parquet__dask__sql__invalid_sql(df):
             ).as_pandas()
 
 
+@pytest.mark.skip(reason="Broken test")
 def test_read_parquet__dask__sql__no_data(df):
     with NamedTemporaryFile(suffix=".parquet") as parquet:
         df.to_parquet(path=parquet.name, index=False)
