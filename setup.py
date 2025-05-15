@@ -39,14 +39,11 @@ setup(
     packages=find_packages(exclude=("tests", "tests.*", "tests.*.*")),
     include_package_data=True,
     package_data={
-        "": [
-            "LICENSE",
-        ],
+        "": [],
     },
     exclude_package_data={
         "": ["__pycache__", "*.py[co]"],
     },
-    license="BSD 3-Clause",
     description="",
     long_description="",
     long_description_content_type="text/markdown",
@@ -59,7 +56,6 @@ setup(
     extras_require=get_optional_requirements(),
     classifiers=[
         "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.6",
