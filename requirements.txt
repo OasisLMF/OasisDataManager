@@ -59,6 +59,7 @@ certifi==2025.4.26
     #   fiona
     #   httpcore
     #   httpx
+    #   pyogrio
     #   pyproj
     #   requests
 cffi==1.17.1
@@ -222,6 +223,7 @@ numpy==2.2.5
     #   h5py
     #   pandas
     #   pandas-stubs
+    #   pyogrio
     #   shapely
 packaging==25.0
     # via
@@ -231,6 +233,7 @@ packaging==25.0
     #   fastparquet
     #   geopandas
     #   pooch
+    #   pyogrio
     #   pytest
 pandas==2.2.3
     # via
@@ -288,6 +291,8 @@ pyjwt[crypto]==2.10.1
     # via
     #   msal
     #   pyjwt
+pyogrio==0.11.0
+    # via -r /home/sam/work/oasis-repos/OasisDataManager/optional-package.in
 pyproj==3.7.1
     # via geopandas
 pytest==8.3.5
