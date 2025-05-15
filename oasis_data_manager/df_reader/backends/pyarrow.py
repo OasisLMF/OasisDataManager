@@ -1,6 +1,5 @@
 import pyarrow.dataset as ds
 from functools import reduce
-import pandas as pd
 
 from .base import OasisReader
 
