@@ -1,8 +1,8 @@
 import pyarrow.dataset as ds
 from functools import reduce
-import pandas as pd
 
 from .base import OasisReader
+
 
 class OasisPyarrowReader(OasisReader):
 
@@ -48,7 +48,6 @@ class OasisPyarrowReader(OasisReader):
 
             return new_filter
 
-
         if 'filters' in kwargs:
             ds_filter = pyarrow_dataset_filter(kwargs['filters'])
         else:
@@ -65,7 +64,7 @@ class OasisPyarrowReader(OasisReader):
                     self.filename_or_buffer, encode_params=False
                 )
 
-                uri = uri.replace('file://', '') 
+                uri = uri.replace('file://', '')
                 dataset = ds.dataset(uri, partitioning='hive')
                 self.df = dataset.to_table(filter=ds_filter).to_pandas()
 

@@ -16,11 +16,11 @@ jobs:
 
   test:
     name: Run Pytest
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11.8"]
+        python-version: ["3.11"]
 
     steps:
     - uses: actions/checkout@v3
@@ -35,10 +35,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install pip-tools setuptools-rust
 
-    - name: Pip Compile
+    - name: Pip install
       run: |
-        rm requirements.txt
-        pip-compile requirements.in -o requirements.txt
         pip install -r requirements.txt
 
     - name: Download package
