@@ -170,7 +170,6 @@ class AwsS3Storage(BaseStorage):
             s3_additional_kwargs["StorageClass"] = "REDUCED_REDUNDANCY"
 
         return {
-            "anon": not self.access_key and not self.security_token,
             "key": self.access_key,
             "secret": self.secret_key,
             "token": self.security_token,
