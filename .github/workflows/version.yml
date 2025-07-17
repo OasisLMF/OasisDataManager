@@ -1,4 +1,4 @@
-name: ODS-tools Version
+name: OasisDataManger Version
 
 on:
   workflow_dispatch:
