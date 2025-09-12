@@ -104,7 +104,7 @@ class AzureABFSStorage(BaseStorage):
     def get_fsspec_storage_options(self):
         return {
             "anon": not self.account_key,
-            "connection_string": self.connection_string,
+            "connection_string": self._connection_string,
             "account_name": self.account_name,
             "account_key": self.account_key,
             "use_ssl": self.azure_ssl,
@@ -117,11 +117,11 @@ class AzureABFSStorage(BaseStorage):
         else:
             cs = ""
             if self.endpoint_url:
-                cs += f"BlobEndpoint={self.endpoint_url};"
+                cs += f"BlobEndpoint={self.fs.endpoint_url};"
             if self.account_name:
-                cs += f"AccountName={self.account_name};"
+                cs += f"AccountName={self.fs.account_name};"
             if self.account_key:
-                cs += f"AccountKey={self.account_key};"
+                cs += f"AccountKey={self.fs.account_key};"
 
             return cs
 
@@ -132,17 +132,7 @@ class AzureABFSStorage(BaseStorage):
 
         params = {}
         if encode_params:
-            if self.connection_string:
-                params["connection_string"] = self.connection_string
-            else:
-                if self.account_name:
-                    params["account"] = self.account_name
-
-                if self.account_key:
-                    params["key"] = self.account_key
-
-                if self.endpoint_url:
-                    params["endpoint"] = self.endpoint_url
+            params["connection_string"] = self.connection_string
 
         return (
             filename,
