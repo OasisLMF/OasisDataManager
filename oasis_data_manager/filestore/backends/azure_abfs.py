@@ -117,11 +117,11 @@ class AzureABFSStorage(BaseStorage):
         else:
             cs = ""
             if self.endpoint_url:
-                cs += f"BlobEndpoint={self.fs.endpoint_url};"
+                cs += f"BlobEndpoint={self.fs.fs.endpoint_url};"
             if self.account_name:
-                cs += f"AccountName={self.fs.account_name};"
+                cs += f"AccountName={self.fs.fs.account_name};"
             if self.account_key:
-                cs += f"AccountKey={self.fs.account_key};"
+                cs += f"AccountKey={self.fs.fs.account_key};"
 
             return cs
 
