@@ -118,10 +118,10 @@ class AzureABFSStorage(BaseStorage):
             cs = ""
             if self.endpoint_url:
                 cs += f"BlobEndpoint={self.endpoint_url};"
-            if self.account_name:
-                cs += f"AccountName={self.account_name};"
-            if self.account_key:
-                cs += f"AccountKey={self.account_key};"
+            if self.fs.fs.account_name:
+                cs += f"AccountName={self.fs.fs.account_name};"
+            if self.fs.fs.account_key:
+                cs += f"AccountKey={self.fs.fs.account_key};"
 
             return cs
 
@@ -132,17 +132,7 @@ class AzureABFSStorage(BaseStorage):
 
         params = {}
         if encode_params:
-            if self.connection_string:
-                params["connection_string"] = self.connection_string
-            else:
-                if self.account_name:
-                    params["account"] = self.account_name
-
-                if self.account_key:
-                    params["key"] = self.account_key
-
-                if self.endpoint_url:
-                    params["endpoint"] = self.endpoint_url
+            params["connection_string"] = self.connection_string
 
         return (
             filename,
