@@ -76,6 +76,7 @@ def get_df_reader(config, *args, **kwargs):
         cls = load_class(kwargs["df_engine"])
     else:
         cls = load_class(config["engine"]["path"], OasisReader)
+    kwargs.pop('df_engine', None)
     storage = config["engine"]["options"].pop("storage", None) or LocalStorage("/")
 
     return cls(
