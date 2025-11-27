@@ -1,6 +1,7 @@
 import base64
 import contextlib
 import io
+import json
 import logging
 import os
 import shutil
@@ -16,6 +17,7 @@ import fsspec
 from fsspec.implementations.dirfs import DirFileSystem
 
 from oasis_data_manager.errors import OasisException
+import xxhash
 
 LOG_FILE_SUFFIX = "txt"
 ARCHIVE_FILE_SUFFIX = "tar.gz"
@@ -172,6 +174,23 @@ class BaseStorage(object):
         with tarfile.open(archive_fp, "w:gz") as tar:
             tar.add(directory, arcname=arcname)
 
+    def _read_and_hash(self, fileobj, chunk=8192):
+        """Read stream, hash it, write bytes to tmp file
+        Args:
+            fileobj (IO[bytes]): File object to read
+            chunk (int, optional): Chunk size to read. Defaults to 8192.
+
+        Returns:
+            tuple[str, str]: A tuple containing the hash string for the data and path to temp file written
+        """
+        h = xxhash.xxh64()
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            for block in iter(lambda: fileobj.read(chunk), b""):
+                h.update(block)
+                tmp.write(block)
+            temp_path = tmp.name
+        return h.hexdigest(), temp_path
+
     def get_from_cache(self, reference, required=False, no_cache_target=None):
         """
         Retrieves a file from the storage and stores it in the cache.
@@ -191,39 +210,49 @@ class BaseStorage(object):
         :return: Absolute filepath to stored Object
         :rtype str
         """
-        # null ref given
         if not reference:
             if required:
                 raise MissingInputsException(reference)
+            return None
+
+        # No cache root configured, just return data
+        if not self.cache_root:
+            if not no_cache_target:
+                raise OasisException("Error: no_cache_target not set when self.cache_root is disabled")
+            Path(no_cache_target).parent.mkdir(parents=True, exist_ok=True)
+            if self._is_valid_url(reference):
+                data = urlopen(reference).read()
+                with io.open(no_cache_target, "wb") as f:
+                    f.write(data)
+                    logging.info("Get from URL: {}".format(reference))
             else:
-                return None
+                self.fs.get(reference, no_cache_target, recursive=True)
+                logging.info("Get from Filestore: {}".format(reference))
+            return no_cache_target
 
-        # check if the file is in the cache, if so return that path
-        cache_filename = base64.b64encode(reference.encode()).decode()
-        if self.cache_root:
-            cached_file = os.path.join(self.cache_root, cache_filename)
-        else:
-            os.makedirs(os.path.dirname(no_cache_target), exist_ok=True)
-            cached_file = no_cache_target
+        # Caching enabled
+        content_dir = Path(self.cache_root)
+        content_dir.mkdir(parents=True, exist_ok=True)
 
-        if self.cache_root:
-            if os.path.exists(cached_file):
-                logging.info("Get from Cache: {}".format(reference))
-                return cached_file
-
+        # Download and hash data
         if self._is_valid_url(reference):
-            # if the file is not in the path, and is a url download it to the cache
-            response = urlopen(reference)
-            fdata = response.read()
-
-            with io.open(cached_file, "w+b") as f:
-                f.write(fdata)
-                logging.info("Get from URL: {}".format(reference))
+            fileobj = urlopen(reference)
         else:
-            # otherwise get it from the storage and add it to the cache
-            self.fs.get(reference, cached_file, recursive=True)
+            fileobj = self.fs.open(reference, "rb")
+        with fileobj:
+            hash_value, temp_path = self._read_and_hash(fileobj)
 
-        return cached_file
+        # Check content exists in cache
+        cached_path = content_dir / hash_value
+        if not cached_path.exists():
+            try:
+                os.replace(temp_path, cached_path)
+            except FileExistsError:
+                os.unlink(temp_path)
+        else:
+            os.unlink(temp_path)
+
+        return str(cached_path)
 
     def get(self, reference, output_path="", subdir="", required=False):
         """Retrieve stored object and stores it in the output path
