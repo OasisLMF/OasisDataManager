@@ -1,7 +1,5 @@
-import base64
 import contextlib
 import io
-import json
 import logging
 import os
 import shutil
