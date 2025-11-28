@@ -1,5 +1,4 @@
 import contextlib
-import io
 import logging
 import os
 import shutil
@@ -219,8 +218,9 @@ class BaseStorage(object):
                 raise OasisException("Error: no_cache_target not set when self.cache_root is disabled")
             Path(no_cache_target).parent.mkdir(parents=True, exist_ok=True)
             if self._is_valid_url(reference):
-                data = urlopen(reference).read()
-                with io.open(no_cache_target, "wb") as f:
+                with urlopen(reference, timeout=30) as r:
+                    data = r.read()
+                with open(no_cache_target, "wb") as f:
                     f.write(data)
                     logging.info("Get from URL: {}".format(reference))
             else:
@@ -232,23 +232,33 @@ class BaseStorage(object):
         content_dir = Path(self.cache_root)
         content_dir.mkdir(parents=True, exist_ok=True)
 
+        # Create reference hash for fast lookup
+        ref_hash = xxhash.xxh64(reference.encode()).hexdigest()
+        ref_cache_link = content_dir / f"{ref_hash}.ref"
+
+        prev_content_hash = None
+        if ref_cache_link.exists():
+            prev_content_hash = ref_cache_link.read_text()
+
         # Download and hash data
         if self._is_valid_url(reference):
-            fileobj = urlopen(reference)
+            fileobj = urlopen(reference, timeout=30)
         else:
             fileobj = self.fs.open(reference, "rb")
         with fileobj:
-            hash_value, temp_path = self._read_and_hash(fileobj)
+            content_hash, temp_path = self._read_and_hash(fileobj)
 
         # Check content exists in cache
-        cached_path = content_dir / hash_value
+        cached_path = content_dir / content_hash
+        if prev_content_hash == content_hash and cached_path.exists():
+            return str(cached_path)
+
         if not cached_path.exists():
-            try:
-                os.replace(temp_path, cached_path)
-            except FileExistsError:
-                os.unlink(temp_path)
+            os.replace(temp_path, cached_path)
         else:
             os.unlink(temp_path)
+
+        ref_cache_link.write_text(str(cached_path))
 
         return str(cached_path)
 
