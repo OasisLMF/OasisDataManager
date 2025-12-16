@@ -60,7 +60,7 @@ jobs:
             exit 0
           fi
           echo "Waiting for LocalStack..."
-          curl -s http://localhost:4566/_localstack/health
+          curl -s http://localhost:4566/_localstack/health || true
           sleep 2
         done
         echo "LocalStack did not become ready in time"
