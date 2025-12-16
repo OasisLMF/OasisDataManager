@@ -50,7 +50,7 @@ jobs:
 
     - name: Start LocalStack
       run: |
-        docker compose up -d localstack
+        localstack start -d
 
     - name: Wait for LocalStack to be ready
       run: |
@@ -74,4 +74,4 @@ jobs:
     - name: Stop LocalStack
       if: always()
       run: |
-        docker compose down -v
+        localstack stop
