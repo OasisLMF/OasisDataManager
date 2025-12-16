@@ -25,6 +25,8 @@ anyio==4.9.0
     # via
     #   httpx
     #   starlette
+asn1crypto==1.5.1
+    # via localstack-core
 asttokens==3.0.0
     # via stack-data
 attrs==25.3.0
@@ -54,6 +56,8 @@ botocore-stubs==1.38.16
     # via
     #   types-boto3
     #   types-botocore
+cachetools==6.2.4
+    # via localstack-core
 certifi==2025.4.26
     # via
     #   fiona
@@ -75,6 +79,8 @@ click==8.2.0
     #   dask
     #   distributed
     #   fiona
+    #   localstack-core
+    #   localstack-ext
     #   uvicorn
 click-plugins==1.1.1
     # via fiona
@@ -94,6 +100,8 @@ cryptography==44.0.3
     # via
     #   azure-identity
     #   azure-storage-blob
+    #   localstack-core
+    #   localstack-ext
     #   msal
     #   pyjwt
 dask[array,dataframe]==2025.5.0
@@ -110,10 +118,16 @@ decorator==5.2.1
     # via
     #   ipdb
     #   ipython
+dill==0.3.6
+    # via localstack-core
 distributed==2025.5.0
     # via
     #   -r optional-package.in
     #   dask-sql
+dnslib==0.9.26
+    # via localstack-core
+dnspython==2.8.0
+    # via localstack-core
 executing==2.2.0
     # via stack-data
 fastapi==0.115.12
@@ -185,16 +199,28 @@ jmespath==1.0.1
     #   aiobotocore
     #   boto3
     #   botocore
+localstack==4.12.0
+    # via -r requirements.in
+localstack-core==4.12.0
+    # via
+    #   localstack
+    #   localstack-ext
+localstack-ext==4.12.0
+    # via localstack
 locket==1.0.0
     # via
     #   distributed
     #   partd
+markdown-it-py==4.0.0
+    # via rich
 markupsafe==3.0.2
     # via jinja2
 matplotlib-inline==0.1.7
     # via ipython
 mccabe==0.7.0
     # via flake8
+mdurl==0.1.2
+    # via markdown-it-py
 msal==1.32.3
     # via
     #   azure-datalake-store
@@ -230,6 +256,7 @@ packaging==25.0
     #   distributed
     #   fastparquet
     #   geopandas
+    #   localstack-ext
     #   pooch
     #   pyogrio
     #   pytest
@@ -252,6 +279,10 @@ platformdirs==4.3.8
     # via pooch
 pluggy==1.6.0
     # via pytest
+plux==1.13.0
+    # via
+    #   localstack-core
+    #   localstack-ext
 pooch==1.8.2
     # via geodatasets
 prompt-toolkit==3.0.51
@@ -263,7 +294,9 @@ propcache==0.3.1
     #   aiohttp
     #   yarl
 psutil==7.0.0
-    # via distributed
+    # via
+    #   distributed
+    #   localstack-core
 ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.3
@@ -285,12 +318,16 @@ pygments==2.19.1
     #   dask-sql
     #   ipython
     #   ipython-pygments-lexers
+    #   rich
 pyjwt[crypto]==2.10.1
     # via
+    #   localstack-ext
     #   msal
     #   pyjwt
 pyogrio==0.11.0
     # via -r optional-package.in
+pyotp==2.9.0
+    # via localstack-ext
 pyproj==3.7.1
     # via geopandas
 pytest==8.3.5
@@ -309,25 +346,38 @@ python-dateutil==2.9.0.post0
     # via
     #   aiobotocore
     #   botocore
+    #   localstack-ext
     #   pandas
+python-dotenv==1.2.1
+    # via localstack-core
 pytz==2025.2
     # via pandas
 pyyaml==6.0.2
     # via
     #   dask
     #   distributed
+    #   localstack-core
+    #   localstack-ext
 requests==2.32.3
     # via
     #   azure-core
     #   azure-datalake-store
+    #   localstack-core
+    #   localstack-ext
     #   msal
     #   pooch
 respx==0.22.0
     # via -r requirements.in
+rich==14.2.0
+    # via
+    #   localstack-core
+    #   localstack-ext
 s3fs==2025.3.2
     # via -r optional-package.in
 s3transfer==0.11.3
     # via boto3
+semver==3.0.4
+    # via localstack-core
 shapely==2.1.0
     # via
     #   dask-geopandas
@@ -347,7 +397,9 @@ stack-data==0.6.3
 starlette==0.46.2
     # via fastapi
 tabulate==0.9.0
-    # via dask-sql
+    # via
+    #   dask-sql
+    #   localstack-ext
 tblib==3.1.0
     # via distributed
 toolz==1.0.0

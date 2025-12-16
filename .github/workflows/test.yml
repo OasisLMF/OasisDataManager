@@ -48,7 +48,30 @@ jobs:
     - name: install package
       run: pip install ${{ needs.build.outputs.whl_filename }}
 
+    - name: Start LocalStack
+      run: |
+        docker compose up -d localstack
+
+    - name: Wait for LocalStack to be ready
+      run: |
+        for i in {1..30}; do
+          if curl -s http://localhost:4566/_localstack/health | grep -q '"s3": "running"'; then
+            echo "LocalStack is ready"
+            exit 0
+          fi
+          echo "Waiting for LocalStack..."
+          sleep 2
+        done
+        echo "LocalStack did not become ready in time"
+        docker compose logs localstack
+        exit 1
+
     - name: Run tests
       run: |
         docker compose up -d
         pytest
+
+    - name: Stop LocalStack
+      if: always()
+      run: |
+        docker compose down -v

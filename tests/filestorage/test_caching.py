@@ -1,0 +1,169 @@
+import logging
+import unittest
+import boto3
+import os
+import pytest
+import tempfile
+from pathlib import Path
+
+from oasis_data_manager.errors import OasisException
+from oasis_data_manager.filestore.backends.aws_s3 import AwsS3Storage
+from oasis_data_manager.filestore.backends.base import MissingInputsException
+
+
+LOCALSTACK_ENDPOINT = "http://localhost:4566"
+
+
+class AWSStorageCacheTests(unittest.TestCase):
+    bucket_name = "test-bucket"
+
+    @pytest.fixture(autouse=True)
+    def inject_caplog(self, caplog):
+        self.caplog = caplog
+
+    def setUp(self):
+        # boto3 client/resource pointing to LocalStack
+        self.s3 = boto3.resource(
+            "s3",
+            endpoint_url=LOCALSTACK_ENDPOINT,
+            aws_access_key_id="test",
+            aws_secret_access_key="test",
+            region_name="eu-west-2",
+        )
+        # Create bucket
+        self.s3.create_bucket(
+            Bucket=self.bucket_name,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+
+        # Temp cache dir
+        self.temp_cache = tempfile.TemporaryDirectory()
+
+        # Storage instance
+        self.storage = AwsS3Storage(
+            bucket_name=self.bucket_name,
+            root_dir="",
+            cache_dir=self.temp_cache.name,
+            endpoint_url=LOCALSTACK_ENDPOINT,
+            access_key="test",
+            secret_key="test",
+            region_name="eu-west-2",
+        )
+
+    def tearDown(self):
+        bucket = self.s3.Bucket(self.bucket_name)
+        bucket.objects.all().delete()
+        bucket.delete()
+        self.temp_cache.cleanup()
+
+    def test_first_fetch_downloads_and_caches(self):
+        """Test basic download and caching"""
+        key = "test/file.txt"
+        content = b"hello world"
+
+        self.s3.Object(self.bucket_name, key).put(Body=content)
+
+        cached_path = self.storage.get_from_cache(key)
+        self.assertTrue(cached_path and Path(cached_path).exists())
+        with open(cached_path, "rb") as f:
+            self.assertEqual(f.read(), content)
+
+    def test_cache_hit_returns_same_file(self):
+        """Test that fetching the same file again hits the cache (ETag match)"""
+        key = "test/file2.txt"
+        content = b"cached content"
+
+        obj = self.s3.Object(self.bucket_name, key)
+        obj.put(Body=content)
+
+        # First fetch
+        cached_path_1 = self.storage.get_from_cache(key)
+        # Second fetch
+        cached_path_2 = self.storage.get_from_cache(key)
+
+        self.assertEqual(cached_path_1, cached_path_2)
+        with open(cached_path_2, "rb") as f:
+            self.assertEqual(f.read(), content)
+
+    def test_cache_miss_on_etag_change(self):
+        """Test that changing file in S3 updates the cache"""
+        key = "test/file3.txt"
+        content1 = b"first version"
+        content2 = b"second version"
+
+        obj = self.s3.Object(self.bucket_name, key)
+        obj.put(Body=content1)
+
+        cached_path_1 = self.storage.get_from_cache(key)
+
+        # Overwrite the S3 object
+        obj.put(Body=content2)
+
+        cached_path_2 = self.storage.get_from_cache(key)
+
+        self.assertEqual(Path(cached_path_1).parent, Path(cached_path_2).parent)
+        with open(cached_path_2, "rb") as f:
+            self.assertEqual(f.read(), content2)
+
+    def test_missing_file_raises_exception_when_required(self):
+        """Test that requesting a missing file with required=True raises exception"""
+        key = "nonexistent/file.txt"
+        with self.assertRaises(MissingInputsException):
+            self.storage.get_from_cache(key, required=True)
+
+    def test_missing_file_returns_none_when_not_required(self):
+        """Test that requesting a missing file with required=False returns None"""
+        key = "nonexistent/file.txt"
+        result = self.storage.get_from_cache(key, required=False)
+        self.assertIsNone(result)
+
+    def test_missing_etag_skips_cache(self):
+        """Test missing etag skips hashing and returns file"""
+        key = "noetag/file.txt"
+        content = b"something"
+
+        self.s3.Object(self.bucket_name, key).put(Body=content)
+
+        # Patch fs.info to simulate no ETag
+        original_info = self.storage.fs.fs.info
+
+        def fake_info(path):
+            d = original_info(path)
+            d.pop("ETag", None)
+            d.pop("etag", None)
+            return d
+
+        self.storage.fs.fs.info = fake_info
+
+        self.caplog.set_level(logging.WARNING)
+        result = self.storage.get_from_cache(key)
+
+        # Check warning message output
+        assert f"ETag missing for {key} — skipping cache and returning fresh download" in self.caplog.text
+
+        # Cache dir should NOT contain ref_hash folder
+        self.assertEqual(os.listdir(self.temp_cache.name), [])
+        with open(result, "rb") as f:
+            self.assertEqual(f.read(), content)
+
+    def test_no_cache_target_required_when_cache_disabled(self):
+        """Test no_cache_target=None throws exception when cache_dir is None"""
+        no_cache_storage = AwsS3Storage(
+            bucket_name=self.bucket_name,
+            root_dir="",
+            cache_dir=None,
+            endpoint_url=LOCALSTACK_ENDPOINT,
+            access_key="test",
+            secret_key="test",
+            region_name="eu-west-2",
+        )
+        with self.assertRaises(OasisException):
+            no_cache_storage.get_from_cache("anything", no_cache_target=None)
+
+    def test_get_from_cache_directory_raises_error(self):
+        """Test get directory raises error"""
+        prefix = "somedir/"
+        self.s3.Object(self.bucket_name, f"{prefix}file.txt").put(Body=b"x")
+
+        with self.assertRaises(OasisException):
+            self.storage.get_from_cache(prefix)

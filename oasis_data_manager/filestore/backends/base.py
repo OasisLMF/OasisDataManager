@@ -171,23 +171,6 @@ class BaseStorage(object):
         with tarfile.open(archive_fp, "w:gz") as tar:
             tar.add(directory, arcname=arcname)
 
-    def _read_and_hash(self, fileobj, chunk=8192):
-        """Read stream, hash it, write bytes to tmp file
-        Args:
-            fileobj (IO[bytes]): File object to read
-            chunk (int, optional): Chunk size to read. Defaults to 8192.
-
-        Returns:
-            tuple[str, str]: A tuple containing the hash string for the data and path to temp file written
-        """
-        h = xxhash.xxh64()
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            for block in iter(lambda: fileobj.read(chunk), b""):
-                h.update(block)
-                tmp.write(block)
-            temp_path = tmp.name
-        return h.hexdigest(), temp_path
-
     def get_from_cache(self, reference, required=False, no_cache_target=None):
         """
         Retrieves a file from the storage and stores it in the cache.
@@ -212,10 +195,26 @@ class BaseStorage(object):
                 raise MissingInputsException(reference)
             return None
 
+        fs_protocol = getattr(self.fs.fs, "protocol", None)
+
+        # Normalize protocol into a tuple of strings
+        if isinstance(fs_protocol, str):
+            protocols = (fs_protocol,)
+        elif isinstance(fs_protocol, (list, tuple)):
+            protocols = tuple(fs_protocol)
+        else:
+            protocols = ()
+
+        enable_etag_cache = (
+            self.cache_root
+            and not self._is_valid_url(reference)
+            and any(p in ("s3", "s3a", "az", "abfs", "abfss") for p in protocols)
+        )
+
         # No cache root configured, just return data
-        if not self.cache_root:
+        if not enable_etag_cache:
             if not no_cache_target:
-                raise OasisException("Error: no_cache_target not set when self.cache_root is disabled")
+                raise OasisException("Error: caching disabled for this filesystem and no_cache_target not provided")
             Path(no_cache_target).parent.mkdir(parents=True, exist_ok=True)
             if self._is_valid_url(reference):
                 with urlopen(reference, timeout=30) as r:
@@ -229,38 +228,55 @@ class BaseStorage(object):
             return no_cache_target
 
         # Caching enabled
+        # Get metadata
+        try:
+            info = self.fs.info(reference)
+        except FileNotFoundError:
+            if required:
+                raise MissingInputsException(reference)
+            return None
+
+        # Raise error if type is not file
+        if info.get("type") == "directory":
+            raise OasisException(f"Directories are not supported in get_from_cache: {reference}")
+
+        remote_etag = info.get("ETag") or info.get("etag")
+        if remote_etag is None:
+            self.logger.warning(f"ETag missing for {reference} — skipping cache and returning fresh download")
+            if no_cache_target is not None:
+                dest_path = no_cache_target
+                Path(dest_path).parent.mkdir(parents=True, exist_ok=True)
+            else:
+                tmp = tempfile.NamedTemporaryFile(delete=False)
+                dest_path = tmp.name
+                tmp.close()
+            with self.fs.open(reference, "rb") as src, open(dest_path, "wb") as out:
+                shutil.copyfileobj(src, out)
+            return dest_path
+
+        # Create Cache dir
         content_dir = Path(self.cache_root)
         content_dir.mkdir(parents=True, exist_ok=True)
 
         # Create reference hash for fast lookup
         ref_hash = xxhash.xxh64(reference.encode()).hexdigest()
-        ref_cache_link = content_dir / f"{ref_hash}.ref"
+        file_dir = content_dir / ref_hash
+        file_dir.mkdir(parents=True, exist_ok=True)
+        file_path = file_dir / "data"
+        etag_path = file_dir / "etag"
 
-        prev_content_hash = None
-        if ref_cache_link.exists():
-            prev_content_hash = ref_cache_link.read_text()
+        # Return if etag matches
+        if file_path.exists() and etag_path.exists():
+            cached_etag = etag_path.read_text()
+            if cached_etag == remote_etag:
+                return str(file_path)
 
-        # Download and hash data
-        if self._is_valid_url(reference):
-            fileobj = urlopen(reference, timeout=30)
-        else:
-            fileobj = self.fs.open(reference, "rb")
-        with fileobj:
-            content_hash, temp_path = self._read_and_hash(fileobj)
+        # Redownload data and write etag
+        with self.fs.open(reference, "rb") as f, open(file_path, "wb") as out:
+            shutil.copyfileobj(f, out)
+        etag_path.write_text(remote_etag)
 
-        # Check content exists in cache
-        cached_path = content_dir / content_hash
-        if prev_content_hash == content_hash and cached_path.exists():
-            return str(cached_path)
-
-        if not cached_path.exists():
-            os.replace(temp_path, cached_path)
-        else:
-            os.unlink(temp_path)
-
-        ref_cache_link.write_text(str(cached_path))
-
-        return str(cached_path)
+        return str(file_path)
 
     def get(self, reference, output_path="", subdir="", required=False):
         """Retrieve stored object and stores it in the output path
@@ -423,7 +439,7 @@ class BaseStorage(object):
             self._fs = StrictRootDirFs(
                 path=self.root_dir,
                 fs=(
-                    self.fsspec_filesystem_class(**self.get_fsspec_storage_options())
+                    self.fsspec_filesystem_class(**self.get_fsspec_storage_options(), asynchronous=False)
                     if self.fsspec_filesystem_class
                     else None
                 ),
