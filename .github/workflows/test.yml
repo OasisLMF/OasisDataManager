@@ -57,10 +57,10 @@ jobs:
         for i in {1..30}; do
           if curl -s http://localhost:4566/_localstack/health | grep -q '"s3": "running"'; then
             echo "LocalStack is ready"
-            curl -s http://localhost:4566/_localstack/health || true
             exit 0
           fi
           echo "Waiting for LocalStack..."
+          curl -s http://localhost:4566/_localstack/health
           sleep 2
         done
         echo "LocalStack did not become ready in time"
