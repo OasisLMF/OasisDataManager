@@ -114,24 +114,21 @@ class AzureABFSStorage(BaseStorage):
     def connection_string(self):
         if self._connection_string:
             return self._connection_string
-        else:
-            fsspec_storage_options = {
-                "anon": not self.account_key,
-                "account_name": self.account_name,
-                "account_key": self.account_key,
-                "use_ssl": self.azure_ssl,
-            }
-            fs = self.fsspec_filesystem_class(**fsspec_storage_options)
 
-            cs = ""
-            if self.endpoint_url:
-                cs += f"BlobEndpoint={self.endpoint_url};"
-            if fs.account_name:
-                cs += f"AccountName={fs.account_name};"
-            if fs.account_key:
-                cs += f"AccountKey={fs.account_key};"
+        cs_parts = [
+            f"DefaultEndpointsProtocol={'https' if self.azure_ssl else 'http'}",
+            f"AccountName={self.account_name}",
+            f"AccountKey={self.account_key}"
+        ]
 
-            return cs
+        if self.endpoint_url:
+            # Azurite requires the account name in the endpoint path
+            endpoint = self.endpoint_url.rstrip('/')
+            if self.account_name not in endpoint:
+                endpoint = f"{endpoint}/{self.account_name}"
+            cs_parts.append(f"BlobEndpoint={endpoint};")
+
+        return ";".join(cs_parts)
 
     def get_storage_url(self, filename=None, suffix="tar.gz", encode_params=True):
         filename = (
