@@ -111,7 +111,7 @@ def _setup_azure_storage(cache_dir):
     return storage, azure_upload_file, azure_cleanup
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def storage_context(request):
     config = request.param
     backend_type = config["backend"]
@@ -177,6 +177,38 @@ def test_cache_hit_returns_same_file(storage_context):
     {"backend": "s3"},
     {"backend": "azure"},
 ], indirect=True)
+def test_cache_hit_does_not_redownload(storage_context, monkeypatch):
+    """Test cache is actually used and file isn't redownloaded"""
+    key = "speed/file.txt"
+    content = b"x" * 1024
+
+    storage = storage_context.storage
+    storage_context.upload_file(key, content)
+
+    # First fetch populates cache
+    storage.get_from_cache(key)
+
+    called = False
+
+    def fail_if_called(*args, **kwargs):
+        nonlocal called
+        called = True
+        raise AssertionError("Data stream should not be opened on cache hit")
+
+    # fs.open is only used during download
+    monkeypatch.setattr(storage.fs, "open", fail_if_called)
+
+    # Cache hit
+    result = storage.get_from_cache(key)
+
+    assert Path(result).read_bytes() == content
+    assert called is False
+
+
+@pytest.mark.parametrize("storage_context", [
+    {"backend": "s3"},
+    {"backend": "azure"},
+], indirect=True)
 def test_cache_miss_on_etag_change(storage_context):
     """Test that changing file in S3 updates the cache"""
     key = "test/file3.txt"
@@ -215,15 +247,15 @@ def test_missing_file_returns_none_when_not_required(storage_context):
     """Test that requesting a missing file with required=False returns None"""
     key = "nonexistent/file.txt"
     result = storage_context.storage.get_from_cache(key, required=False)
-    assert result == None
+    assert result is None
 
 
 @pytest.mark.parametrize("storage_context", [
     {"backend": "s3"},
     {"backend": "azure"},
 ], indirect=True)
-def test_missing_etag_skips_cache(storage_context, caplog):
-    """Test missing etag skips hashing and returns file"""
+def test_missing_remote_etag_skips_cache(storage_context, caplog, monkeypatch):
+    """Test missing remote etag skips hashing and returns file"""
     key = "noetag/file.txt"
     content = b"something"
 
@@ -238,7 +270,10 @@ def test_missing_etag_skips_cache(storage_context, caplog):
         d.pop("etag", None)
         return d
 
-    storage_context.storage.fs.fs.info = fake_info
+    monkeypatch.setattr(
+        storage_context.storage.fs.fs,
+        "info", fake_info
+    )
 
     caplog.set_level(logging.WARNING)
     result = storage_context.storage.get_from_cache(key)
@@ -249,6 +284,41 @@ def test_missing_etag_skips_cache(storage_context, caplog):
     # Cache dir should NOT contain ref_hash folder
     assert os.listdir(storage_context.storage.cache_root) == []
     assert Path(result).read_bytes() == content
+
+
+@pytest.mark.parametrize("storage_context", [
+    {"backend": "s3"},
+    {"backend": "azure"},
+], indirect=True)
+def test_missing_etag_file_triggers_redownload(storage_context, monkeypatch):
+    """Test missing etag file redownloads file"""
+    key = "etagmissing/file.txt"
+    content = b"original"
+
+    storage = storage_context.storage
+    storage_context.upload_file(key, content)
+
+    old_cached_path = storage.get_from_cache(key)
+
+    # Remove etag file to trigger redownload
+    etag_path = Path(old_cached_path).parent / "etag"
+    etag_path.unlink()
+
+    fs_open_called = {"called": False}
+    original_open = storage.fs.open
+
+    def fake_open(path, mode="rb", *args, **kwargs):
+        if "r" in mode:
+            fs_open_called["called"] = True
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(storage.fs, "open", fake_open)
+
+    # Redownload should happen
+    new_cached_path = storage.get_from_cache(key)
+
+    assert Path(new_cached_path).read_bytes() == content
+    assert fs_open_called["called"] is True
 
 
 @pytest.mark.parametrize("storage_context", [
