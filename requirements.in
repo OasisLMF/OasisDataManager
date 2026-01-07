@@ -15,6 +15,5 @@ geodatasets
 ipdb
 h5py
 xxhash
-localstack
 -r requirements-package.in
 -r optional-package.in

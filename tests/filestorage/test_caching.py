@@ -140,6 +140,23 @@ def storage_context(request):
     {"backend": "s3"},
     {"backend": "azure"},
 ], indirect=True)
+def test_etag_present(storage_context):
+    """Test etag actually present"""
+    key = "etag-check/file.txt"
+    content = b"etag test"
+
+    storage_context.upload_file(key, content)
+
+    info = storage_context.storage.fs.info(key)
+
+    etag = info.get("ETag") or info.get("etag")
+    assert etag is not None
+
+
+@pytest.mark.parametrize("storage_context", [
+    {"backend": "s3"},
+    {"backend": "azure"},
+], indirect=True)
 def test_first_fetch_downloads_and_caches(storage_context):
     """Test basic download and caching"""
     key = "test/file.txt"
