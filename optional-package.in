@@ -6,4 +6,5 @@ dask-sql
 distributed
 geopandas==0.14.4
 pyogrio
+gcsfs>=2023.12.2
 s3fs>=2023.12.2

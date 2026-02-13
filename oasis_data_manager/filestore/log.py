@@ -21,3 +21,14 @@ def set_azure_log_level(log_level):
     except AttributeError:
         LOG_LEVEL = logging.WARNING
     logging.getLogger("azure").setLevel(LOG_LEVEL)
+
+
+def set_gcs_log_level(log_level):
+    try:
+        LOG_LEVEL = getattr(logging, log_level.upper())
+    except AttributeError:
+        LOG_LEVEL = logging.WARNING
+    logging.getLogger("google").setLevel(LOG_LEVEL)
+    logging.getLogger("gcsfs").setLevel(LOG_LEVEL)
+    logging.getLogger("google.auth").setLevel(LOG_LEVEL)
+    logging.getLogger("google.cloud").setLevel(LOG_LEVEL)

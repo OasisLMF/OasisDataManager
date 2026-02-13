@@ -10,6 +10,7 @@ from hypothesis.strategies import text
 
 from oasis_data_manager.filestore.backends.aws_s3 import AwsS3Storage
 from oasis_data_manager.filestore.backends.azure_abfs import AzureABFSStorage
+from oasis_data_manager.filestore.backends.gcs import GcsStorage
 from oasis_data_manager.filestore.backends.local import LocalStorage
 
 test_file_name = "test_file.txt"
@@ -49,6 +50,21 @@ def azure_abfs_storage(**kwargs):
 
 
 @contextlib.contextmanager
+def gcs_storage(**kwargs):
+    kwargs.setdefault("bucket_name", uuid.uuid4().hex)
+    kwargs.setdefault("token", "anon")
+    kwargs.setdefault("endpoint_url", "http://localhost:4443")
+    kwargs.setdefault("project", "test-project")
+    kwargs.setdefault("cache_dir", None)
+
+    fs = GcsStorage(**kwargs)
+    fs.fs.fs.mkdir(fs.bucket_name)
+    fs.fs.mkdirs("")
+
+    yield fs
+
+
+@contextlib.contextmanager
 def local_storage(root_dir="", **kwargs):
     kwargs.setdefault("cache_dir", None)
     with TemporaryDirectory() as root:
@@ -59,6 +75,7 @@ storage_factories = [
     local_storage,
     azure_abfs_storage,
     aws_s3_storage,
+    gcs_storage,
 ]
 
 

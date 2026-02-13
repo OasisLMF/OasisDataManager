@@ -10,9 +10,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
+from google.auth.credentials import AnonymousCredentials
+from google.cloud import storage as gcs_storage
+
 from oasis_data_manager.errors import OasisException
 from oasis_data_manager.filestore.backends.aws_s3 import AwsS3Storage
 from oasis_data_manager.filestore.backends.azure_abfs import AzureABFSStorage
+from oasis_data_manager.filestore.backends.gcs import GcsStorage
 from oasis_data_manager.filestore.backends.base import MissingInputsException, BaseStorage
 
 
@@ -111,6 +115,49 @@ def _setup_azure_storage(cache_dir):
     return storage, azure_upload_file, azure_cleanup
 
 
+def _setup_gcs_storage(cache_dir):
+    gcs_endpoint = "http://localhost:4443"
+    bucket_name = f"test-bucket-{uuid.uuid4().hex[:8]}"
+
+    # GCS client pointing to fake-gcs-server (anonymous credentials for emulator)
+    client = gcs_storage.Client(
+        project="test-project",
+        credentials=AnonymousCredentials(),
+    )
+    client._http._auth_request.session.verify = False
+    client._connection.API_BASE_URL = gcs_endpoint
+    client._connection.api_url = f"{gcs_endpoint}/storage/v1"
+
+    # Create bucket
+    bucket = client.bucket(bucket_name)
+    bucket.create()
+
+    # upload_file function
+    def gcs_upload_file(key, content):
+        blob = client.bucket(bucket_name).blob(key)
+        blob.upload_from_string(content)
+
+    # cleanup function
+    def gcs_cleanup():
+        bucket = client.bucket(bucket_name)
+        blobs = list(bucket.list_blobs())
+        for blob in blobs:
+            blob.delete()
+        bucket.delete()
+
+    # Storage instance
+    storage = GcsStorage(
+        bucket_name=bucket_name,
+        root_dir="",
+        cache_dir=cache_dir,
+        endpoint_url=gcs_endpoint,
+        token="anon",
+        project="test-project",
+    )
+
+    return storage, gcs_upload_file, gcs_cleanup
+
+
 @pytest.fixture(scope="function")
 def storage_context(request):
     config = request.param
@@ -126,6 +173,8 @@ def storage_context(request):
         storage, upload_fn, cleanup_fn = _setup_s3_storage(cache_dir)
     elif backend_type == "azure":
         storage, upload_fn, cleanup_fn = _setup_azure_storage(cache_dir)
+    elif backend_type == "gcs":
+        storage, upload_fn, cleanup_fn = _setup_gcs_storage(cache_dir)
     else:
         raise OasisException(f"Unsupported backend_type ({backend_type}) for testing")
 
@@ -139,6 +188,7 @@ def storage_context(request):
 @pytest.mark.parametrize("storage_context", [
     {"backend": "s3"},
     {"backend": "azure"},
+    {"backend": "gcs"},
 ], indirect=True)
 def test_etag_present(storage_context):
     """Test etag actually present"""
@@ -156,6 +206,7 @@ def test_etag_present(storage_context):
 @pytest.mark.parametrize("storage_context", [
     {"backend": "s3"},
     {"backend": "azure"},
+    {"backend": "gcs"},
 ], indirect=True)
 def test_first_fetch_downloads_and_caches(storage_context):
     """Test basic download and caching"""
@@ -173,6 +224,7 @@ def test_first_fetch_downloads_and_caches(storage_context):
 @pytest.mark.parametrize("storage_context", [
     {"backend": "s3"},
     {"backend": "azure"},
+    {"backend": "gcs"},
 ], indirect=True)
 def test_cache_hit_returns_same_file(storage_context):
     """Test that fetching the same file again hits the cache (ETag match)"""
@@ -193,6 +245,7 @@ def test_cache_hit_returns_same_file(storage_context):
 @pytest.mark.parametrize("storage_context", [
     {"backend": "s3"},
     {"backend": "azure"},
+    {"backend": "gcs"},
 ], indirect=True)
 def test_cache_hit_does_not_redownload(storage_context, monkeypatch):
     """Test cache is actually used and file isn't redownloaded"""
@@ -225,6 +278,7 @@ def test_cache_hit_does_not_redownload(storage_context, monkeypatch):
 @pytest.mark.parametrize("storage_context", [
     {"backend": "s3"},
     {"backend": "azure"},
+    {"backend": "gcs"},
 ], indirect=True)
 def test_cache_miss_on_etag_change(storage_context):
     """Test that changing file in S3 updates the cache"""
@@ -248,6 +302,7 @@ def test_cache_miss_on_etag_change(storage_context):
 @pytest.mark.parametrize("storage_context", [
     {"backend": "s3"},
     {"backend": "azure"},
+    {"backend": "gcs"},
 ], indirect=True)
 def test_missing_file_raises_exception_when_required(storage_context):
     """Test that requesting a missing file with required=True raises exception"""
@@ -259,6 +314,7 @@ def test_missing_file_raises_exception_when_required(storage_context):
 @pytest.mark.parametrize("storage_context", [
     {"backend": "s3"},
     {"backend": "azure"},
+    {"backend": "gcs"},
 ], indirect=True)
 def test_missing_file_returns_none_when_not_required(storage_context):
     """Test that requesting a missing file with required=False returns None"""
@@ -270,6 +326,7 @@ def test_missing_file_returns_none_when_not_required(storage_context):
 @pytest.mark.parametrize("storage_context", [
     {"backend": "s3"},
     {"backend": "azure"},
+    {"backend": "gcs"},
 ], indirect=True)
 def test_missing_remote_etag_skips_cache(storage_context, caplog, monkeypatch):
     """Test missing remote etag skips hashing and returns file"""
@@ -281,8 +338,8 @@ def test_missing_remote_etag_skips_cache(storage_context, caplog, monkeypatch):
     # Patch fs.info to simulate no ETag
     original_info = storage_context.storage.fs.fs.info
 
-    def fake_info(path):
-        d = original_info(path)
+    def fake_info(path, **kwargs):
+        d = original_info(path, **kwargs)
         d.pop("ETag", None)
         d.pop("etag", None)
         return d
@@ -306,6 +363,7 @@ def test_missing_remote_etag_skips_cache(storage_context, caplog, monkeypatch):
 @pytest.mark.parametrize("storage_context", [
     {"backend": "s3"},
     {"backend": "azure"},
+    {"backend": "gcs"},
 ], indirect=True)
 def test_missing_etag_file_triggers_redownload(storage_context, monkeypatch):
     """Test missing etag file redownloads file"""
@@ -341,6 +399,7 @@ def test_missing_etag_file_triggers_redownload(storage_context, monkeypatch):
 @pytest.mark.parametrize("storage_context", [
     {"backend": "s3", "cache_dir": None},
     {"backend": "azure", "cache_dir": None},
+    {"backend": "gcs", "cache_dir": None},
 ], indirect=True)
 def test_no_cache_target_required_when_cache_disabled(storage_context):
     """Test no_cache_target=None throws exception when cache_dir is None"""
@@ -351,6 +410,7 @@ def test_no_cache_target_required_when_cache_disabled(storage_context):
 @pytest.mark.parametrize("storage_context", [
     {"backend": "s3"},
     {"backend": "azure"},
+    {"backend": "gcs"},
 ], indirect=True)
 def test_get_from_cache_directory_raises_error(storage_context):
     """Test get directory raises error"""

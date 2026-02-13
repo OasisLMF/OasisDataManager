@@ -12,6 +12,7 @@ hypothesis
 httpx
 respx
 geodatasets
+google-cloud-storage
 ipdb
 h5py
 xxhash

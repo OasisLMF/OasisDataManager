@@ -74,6 +74,33 @@ def split_azure_url(parts):
     )
 
 
+def split_gcs_url(parts):
+    query = parse.parse_qs(parts.query)
+    params = {
+        "project": query.get("project", [None])[0],
+        "token": query.get("token", ["anon"])[0],
+        "access": query.get("access", [None])[0],
+    }
+
+    endpoint = query.get("endpoint", [None])[0]
+    if endpoint:
+        params["endpoint_url"] = endpoint
+
+    return (
+        urllib.parse.urlunparse(
+            (
+                parts[0],
+                parts[1],
+                parts[2],
+                parts[3],
+                "",
+                parts[5],
+            )
+        ),
+        params,
+    )
+
+
 def parse_url_options(path):
     opener = fsspec.open
 
@@ -84,6 +111,8 @@ def parse_url_options(path):
         path, params = split_s3_url(url_parts)
     elif url_parts.scheme in ["az", "abfs", "adl"]:
         path, params = split_azure_url(url_parts)
+    elif url_parts.scheme in ["gs", "gcs"]:
+        path, params = split_gcs_url(url_parts)
 
     return opener, path, params
 

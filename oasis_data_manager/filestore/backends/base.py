@@ -208,7 +208,7 @@ class BaseStorage(object):
         enable_etag_cache = (
             self.cache_root
             and not self._is_valid_url(reference)
-            and any(p in ("s3", "s3a", "az", "abfs", "abfss") for p in protocols)
+            and any(p in ("s3", "s3a", "az", "abfs", "abfss", "gs", "gcs") for p in protocols)
         )
 
         # No cache root configured, just return data

@@ -75,12 +75,26 @@ class AbfsStorageConfig(BaseStorageConfig):
     endpoint_url: NotRequired[str]
 
 
+class GcsStorageConfig(BaseStorageConfig):
+    bucket_name: NotRequired[str]
+    project: NotRequired[str]
+    token: NotRequired[str]
+    access: NotRequired[str]
+    endpoint_url: NotRequired[str]
+    default_location: NotRequired[str]
+    consistency: NotRequired[str]
+    requester_pays: NotRequired[bool]
+    session_kwargs: NotRequired[dict]
+    gcs_log_level: NotRequired[str]
+
+
 class StorageConfig(TypedDict):
     storage_class: str
     options: Union[
         LocalStorageConfig,
         S3StorageConfig,
         AbfsStorageConfig,
+        GcsStorageConfig,
     ]
 
 

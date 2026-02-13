@@ -15,3 +15,9 @@ services:
     image: mcr.microsoft.com/azure-storage/azurite
     ports:
       - "127.0.0.1:10000:10000"
+  fake-gcs-server:
+    container_name: "${FAKE_GCS_DOCKER_NAME-fake_gcs_server}"
+    image: fsouza/fake-gcs-server
+    command: ["-scheme", "http", "-port", "4443"]
+    ports:
+      - "127.0.0.1:4443:4443"
