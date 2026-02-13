@@ -1,5 +1,4 @@
 import contextlib
-import urllib.parse
 from urllib import parse
 
 import fsspec
@@ -20,14 +19,14 @@ def split_s3_url(parts):
     }
 
     return (
-        urllib.parse.urlunparse(
+        parse.urlunparse(
             (
-                parts[0],
-                parts[1],
-                parts[2],
-                parts[3],
+                parts.scheme,
+                parts.netloc,
+                parts.path,
+                parts.params,
                 "",
-                parts[5],
+                parts.fragment,
             )
         ),
         params,
@@ -39,7 +38,7 @@ def split_azure_url(parts):
 
     query = parse.parse_qs(parts.query)
     if "connection_string" in query:
-        connection_string = parts.get("connection_string")[0]
+        connection_string = query.get("connection_string")[0]
     else:
         if "endpoint" in query:
             connection_string += f"BlobEndpoint={ query.get('endpoint', [None])[0]};"
@@ -60,14 +59,14 @@ def split_azure_url(parts):
     }
 
     return (
-        urllib.parse.urlunparse(
+        parse.urlunparse(
             (
-                parts[0],
-                parts[1],
-                parts[2],
-                parts[3],
+                parts.scheme,
+                parts.netloc,
+                parts.path,
+                parts.params,
                 "",
-                parts[5],
+                parts.fragment,
             )
         ),
         params,

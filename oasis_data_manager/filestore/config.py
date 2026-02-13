@@ -1,13 +1,8 @@
 import json
 import os
-import sys
+from typing import Optional, Tuple, TypedDict, Union
 
-if sys.version_info >= (3, 8):
-    from typing import Optional, Tuple, TypedDict, Union
-    from typing_extensions import NotRequired
-else:
-    from typing import Optional, Tuple, Union
-    from typing_extensions import NotRequired, TypedDict
+from typing_extensions import NotRequired
 
 from oasis_data_manager.config import ConfigError, load_class
 from oasis_data_manager.filestore.backends.base import BaseStorage

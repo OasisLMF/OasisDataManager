@@ -119,12 +119,7 @@ class AwsS3Storage(BaseStorage):
         self.gzip_content_types = gzip_content_types
         set_aws_log_level(self.aws_log_level)
 
-        root_dir = os.path.join(self.bucket_name or "", root_dir)
-        if root_dir.startswith(os.path.sep):
-            root_dir = root_dir[1:]
-        if root_dir.endswith(os.path.sep):
-            root_dir = root_dir[:-1]
-
+        root_dir = self._normalize_root_dir(self.bucket_name, root_dir)
         super(AwsS3Storage, self).__init__(root_dir=root_dir, **kwargs)
 
     @property

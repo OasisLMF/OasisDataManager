@@ -76,7 +76,6 @@ class OasisDaskReader(OasisReader):
         return self.copy_with_df(df)
 
     def apply_sql(self, sql):
-        df = self.df.copy()
         try:
             # Initially this was the filename, but some filenames are invalid for the table,
             # is it ok to call it the same name all the time? Mapped to DaskDataTable in case
@@ -84,7 +83,10 @@ class OasisDaskReader(OasisReader):
             self.sql_context.create_table("DaskDataTable", self.df)
             formatted_sql = sql.replace(self.sql_table_name, "DaskDataTable")
 
-            self.pre_sql_columns.extend(df.columns)
+            # Combine columns from join() tables with current df columns for case restoration
+            col_map = {}
+            for col in list(self.pre_sql_columns) + list(self.df.columns):
+                col_map.setdefault(col.lower(), col)
 
             # dask expects the columns to be lower case, which won't match some data
             df = self.sql_context.sql(
@@ -93,17 +95,7 @@ class OasisDaskReader(OasisReader):
             )
             # which means we then need to map the columns back to the original
             # and allow for any aggregations to be retained
-            validated_columns = []
-            for v in df.columns:
-                pre = False
-                for x in self.pre_sql_columns:
-                    if v.lower() == x.lower():
-                        validated_columns.append(x)
-                        pre = True
-
-                if not pre:
-                    validated_columns.append(v)
-            df.columns = validated_columns
+            df.columns = [col_map.get(v.lower(), v) for v in df.columns]
 
             return self.copy_with_df(df)
         except ParsingException:

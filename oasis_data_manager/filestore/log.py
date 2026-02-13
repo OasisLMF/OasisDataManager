@@ -1,23 +1,22 @@
 import logging
 
 
-def set_aws_log_level(log_level):
-    # Set log level for s3boto3
+def _parse_log_level(log_level):
     try:
-        LOG_LEVEL = getattr(logging, log_level.upper())
+        return getattr(logging, log_level.upper())
     except AttributeError:
-        LOG_LEVEL = logging.WARNING
+        return logging.WARNING
 
-    logging.getLogger("boto3").setLevel(LOG_LEVEL)
-    logging.getLogger("botocore").setLevel(LOG_LEVEL)
-    logging.getLogger("nose").setLevel(LOG_LEVEL)
-    logging.getLogger("s3transfer").setLevel(LOG_LEVEL)
-    logging.getLogger("urllib3").setLevel(LOG_LEVEL)
+
+def set_aws_log_level(log_level):
+    level = _parse_log_level(log_level)
+    logging.getLogger("boto3").setLevel(level)
+    logging.getLogger("botocore").setLevel(level)
+    logging.getLogger("nose").setLevel(level)
+    logging.getLogger("s3transfer").setLevel(level)
+    logging.getLogger("urllib3").setLevel(level)
 
 
 def set_azure_log_level(log_level):
-    try:
-        LOG_LEVEL = getattr(logging, log_level.upper())
-    except AttributeError:
-        LOG_LEVEL = logging.WARNING
-    logging.getLogger("azure").setLevel(LOG_LEVEL)
+    level = _parse_log_level(log_level)
+    logging.getLogger("azure").setLevel(level)

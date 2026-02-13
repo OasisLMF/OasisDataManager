@@ -65,12 +65,7 @@ class AzureABFSStorage(BaseStorage):
         self.endpoint_url = endpoint_url
         set_azure_log_level(self.azure_log_level)
 
-        root_dir = os.path.join(self.azure_container or "", root_dir or location or "")
-        if root_dir.startswith(os.path.sep):
-            root_dir = root_dir[1:]
-        if root_dir.endswith(os.path.sep):
-            root_dir = root_dir[:-1]
-
+        root_dir = self._normalize_root_dir(self.azure_container, root_dir or location or "")
         super(AzureABFSStorage, self).__init__(root_dir=root_dir, **kwargs)
 
     @property
