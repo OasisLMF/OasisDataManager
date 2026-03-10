@@ -5,10 +5,15 @@ import pandas as pd
 import pytest
 
 from oasis_data_manager.df_reader.exceptions import InvalidSQLException
-from oasis_data_manager.df_reader.reader import OasisDaskReaderParquet, OasisPandasReaderParquet
+from oasis_data_manager.df_reader.reader import OasisPandasReaderParquet
 from oasis_data_manager.filestore.backends.local import LocalStorage
 
-READERS = [OasisPandasReaderParquet, OasisDaskReaderParquet]
+try:
+    from oasis_data_manager.df_reader.reader import OasisDaskReaderParquet
+except ImportError:
+    OasisDaskReaderParquet = None
+
+READERS = [r for r in [OasisPandasReaderParquet, OasisDaskReaderParquet] if r is not None]
 
 storage = LocalStorage("/")
 

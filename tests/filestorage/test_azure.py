@@ -3,7 +3,7 @@ import uuid
 
 import urllib3
 
-from oasis_data_manager.filestore.backends.azure_abfs import AzureABFSStorage
+from oasis_data_manager.filestore.backends.azure import AzureABFSStorage
 from oasis_data_manager.filestore.config import get_storage_from_config
 
 

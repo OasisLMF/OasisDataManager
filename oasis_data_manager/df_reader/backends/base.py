@@ -68,24 +68,16 @@ class OasisReader:
             else:
                 parts = pathlib.Path(self.filename_or_buffer).parts
 
-            for part in parts:
-                for extension in [".parquet", ".pq"]:
-                    if part.endswith(extension):
-                        is_parquet = True
-                        break
-                else:
-                    continue  # if parquet extension is found the outer break will be called exiting the for with is_parquet = True
-                break
-            else:
-                is_parquet = False
+            is_parquet = any(
+                part.endswith((".parquet", ".pq")) for part in parts
+            )
 
             if is_parquet:
-                self.has_read = True
                 self.read_parquet(*self.reader_args, **self.reader_kwargs)
             else:
                 # assume the file is csv if not parquet
-                self.has_read = True
                 self.read_csv(*self.reader_args, **self.reader_kwargs)
+            self.has_read = True
 
         return self
 
@@ -97,7 +89,7 @@ class OasisReader:
     def filter(self, filters):
         self._read()
 
-        df = self.df
+        df = self._df
         for df_filter in filters if isinstance(filters, Iterable) else [filters]:
             df = df_filter(df)
 
@@ -114,7 +106,7 @@ class OasisReader:
 
     def as_pandas(self):
         self._read()
-        return self.df
+        return self._df
 
     def read_from_dataframe(self):
         pass

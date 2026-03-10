@@ -1,41 +1,14 @@
 import json
-import sys
 from copy import deepcopy
 from pathlib import Path
-
-if sys.version_info >= (3, 8):
-    from typing import Any, Dict, TypedDict, Union
-    from typing_extensions import NotRequired
-else:
-    from typing import Any, Dict, Union
-    from typing_extensions import NotRequired, TypedDict
+from typing import Union
 
 from ..config import ConfigError, load_class
 from ..filestore.backends.local import LocalStorage
 from .reader import OasisReader
 
 
-class ResolvedReaderEngineConfig(TypedDict):
-    path: str
-    options: Dict[str, Any]
-
-
-class ResolvedReaderConfig(TypedDict):
-    filepath: str
-    engine: ResolvedReaderEngineConfig
-
-
-class InputReaderEngineConfig(TypedDict):
-    path: NotRequired[str]
-    options: NotRequired[Dict[str, Any]]
-
-
-class InputReaderConfig(TypedDict):
-    filepath: str
-    engine: NotRequired[Union[str, InputReaderEngineConfig]]
-
-
-def clean_config(config: Union[str, InputReaderConfig]) -> ResolvedReaderConfig:
+def clean_config(config: Union[str, dict]) -> dict:
     if isinstance(config, (str, Path)) or hasattr(config, "read"):
         _config: dict = {
             "filepath": config,
@@ -43,8 +16,7 @@ def clean_config(config: Union[str, InputReaderConfig]) -> ResolvedReaderConfig:
     elif not isinstance(config, dict):
         raise ConfigError(f"df_reader config must be a string or dictionary: {config}")
     else:
-        config: dict  # type: ignore
-        _config = deepcopy(config)  # type: ignore
+        _config = deepcopy(config)
 
     if "filepath" not in _config:
         raise ConfigError(
@@ -67,7 +39,7 @@ def clean_config(config: Union[str, InputReaderConfig]) -> ResolvedReaderConfig:
     _config["engine"].setdefault("path", "oasis_data_manager.df_reader.reader.OasisPandasReader")
     _config["engine"].setdefault("options", {})
 
-    return _config  # type: ignore
+    return _config
 
 
 def get_df_reader(config, *args, **kwargs):
