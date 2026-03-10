@@ -14,5 +14,6 @@ respx
 geodatasets
 ipdb
 h5py
+xxhash
 -r requirements-package.in
 -r optional-package.in
