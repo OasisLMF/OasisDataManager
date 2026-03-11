@@ -72,12 +72,19 @@ class OasisReader:
                 part.endswith((".parquet", ".pq")) for part in parts
             )
 
-            if is_parquet:
-                self.read_parquet(*self.reader_args, **self.reader_kwargs)
-            else:
-                # assume the file is csv if not parquet
-                self.read_csv(*self.reader_args, **self.reader_kwargs)
+            # Set has_read before calling read to prevent re-entrant calls (e.g. Dask
+            # readers access self.df internally during read). Reset on failure so the
+            # read can be retried.
             self.has_read = True
+            try:
+                if is_parquet:
+                    self.read_parquet(*self.reader_args, **self.reader_kwargs)
+                else:
+                    # assume the file is csv if not parquet
+                    self.read_csv(*self.reader_args, **self.reader_kwargs)
+            except Exception:
+                self.has_read = False
+                raise
 
         return self
 

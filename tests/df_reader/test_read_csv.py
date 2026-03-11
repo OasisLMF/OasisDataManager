@@ -17,7 +17,7 @@ from oasis_data_manager.filestore.backends.local import LocalStorage
 try:
     from oasis_data_manager.df_reader.reader import OasisDaskReaderCSV
 except ImportError:
-    OasisDaskReaderCSV = None
+    OasisDaskReaderCSV = None  # type: ignore[assignment]
 
 READERS = [r for r in [OasisPandasReaderCSV, OasisDaskReaderCSV] if r is not None]
 
@@ -219,6 +219,9 @@ def test_query__dataframe_transform(reader, df):
 
         result = reader(csv.name, storage).query(lambda frame: frame["D"].sum())
 
+        # Dask returns a lazy scalar; compute it before comparing
+        if hasattr(result, "compute"):
+            result = result.compute()
         assert result == 12  # 4 rows × D=3
 
 
