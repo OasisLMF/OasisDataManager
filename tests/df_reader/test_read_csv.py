@@ -17,7 +17,7 @@ from oasis_data_manager.filestore.backends.local import LocalStorage
 try:
     from oasis_data_manager.df_reader.reader import OasisDaskReaderCSV
 except ImportError:
-    OasisDaskReaderCSV = None  # type: ignore[misc]
+    OasisDaskReaderCSV = None  # type: ignore[misc,assignment]
 
 READERS = [r for r in [OasisPandasReaderCSV, OasisDaskReaderCSV] if r is not None]
 

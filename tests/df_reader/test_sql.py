@@ -10,7 +10,7 @@ from oasis_data_manager.filestore.backends.local import LocalStorage
 try:
     from oasis_data_manager.df_reader.reader import OasisDaskReaderCSV
 except ImportError:
-    OasisDaskReaderCSV = None  # type: ignore[misc]
+    OasisDaskReaderCSV = None  # type: ignore[misc,assignment]
 
 # Test readers in more detail, base SQL is tested for both CSV and parquet separate to this.
 pytest.skip("These are broken ~ good luck for later", allow_module_level=True)

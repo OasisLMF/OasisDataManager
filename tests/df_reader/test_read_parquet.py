@@ -11,7 +11,7 @@ from oasis_data_manager.filestore.backends.local import LocalStorage
 try:
     from oasis_data_manager.df_reader.reader import OasisDaskReaderParquet
 except ImportError:
-    OasisDaskReaderParquet = None  # type: ignore[misc]
+    OasisDaskReaderParquet = None  # type: ignore[misc,assignment]
 
 READERS = [r for r in [OasisPandasReaderParquet, OasisDaskReaderParquet] if r is not None]
 
