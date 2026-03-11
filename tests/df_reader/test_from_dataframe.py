@@ -8,7 +8,7 @@ from oasis_data_manager.filestore.backends.local import LocalStorage
 try:
     from oasis_data_manager.df_reader.reader import OasisDaskReader
 except ImportError:
-    OasisDaskReader = None  # type: ignore[assignment]
+    OasisDaskReader = None  # type: ignore[misc]
 
 READERS = [r for r in [OasisDaskReader, OasisPandasReader] if r is not None]
 
