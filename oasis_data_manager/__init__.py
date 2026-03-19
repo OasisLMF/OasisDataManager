@@ -32,10 +32,16 @@ except (ImportError, ModuleNotFoundError):
     pass
 
 # --- Short storage aliases ------------------------------------------------- #
+from .filestore.backends.base import BaseStorage
 from .filestore.backends.local import LocalStorage
 from .filestore.config import get_storage_from_config, get_storage_from_config_path
 
-__all__ += ["LocalStorage", "get_storage_from_config", "get_storage_from_config_path"]
+__all__ += ["BaseStorage", "LocalStorage", "get_storage_from_config", "get_storage_from_config_path"]
+
+# --- Exceptions ------------------------------------------------------------ #
+from .errors import OasisDataManagerException, OasisException
+
+__all__ += ["OasisDataManagerException", "OasisException"]
 
 try:
     from .filestore.backends.aws import AwsS3Storage

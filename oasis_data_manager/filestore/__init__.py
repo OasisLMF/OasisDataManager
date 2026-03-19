@@ -1,7 +1,8 @@
+from .backends.base import BaseStorage
 from .backends.local import LocalStorage
 from .config import get_storage_from_config, get_storage_from_config_path
 
-__all__ = ["LocalStorage", "get_storage_from_config", "get_storage_from_config_path"]
+__all__ = ["BaseStorage", "LocalStorage", "get_storage_from_config", "get_storage_from_config_path"]
 
 try:
     from .backends.aws import AwsS3Storage

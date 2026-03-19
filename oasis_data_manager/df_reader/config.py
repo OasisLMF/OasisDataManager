@@ -8,6 +8,14 @@ from ..filestore.backends.local import LocalStorage
 from .reader import OasisReader
 
 
+def InputReaderConfig(filepath, engine=None) -> dict:
+    """Backward-compatible helper that returns a df_reader config dict."""
+    config = {"filepath": filepath}
+    if engine is not None:
+        config["engine"] = engine
+    return config
+
+
 def clean_config(config: Union[str, dict]) -> dict:
     if isinstance(config, (str, Path)) or hasattr(config, "read"):
         _config: dict = {

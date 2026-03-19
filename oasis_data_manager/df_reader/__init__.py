@@ -1,6 +1,6 @@
 from .backends.base import OasisReader
 from .backends.pandas import OasisPandasReader, OasisPandasReaderCSV, OasisPandasReaderParquet
-from .config import get_df_reader, clean_config
+from .config import get_df_reader, clean_config, InputReaderConfig
 
 __all__ = [
     "OasisReader",
@@ -9,6 +9,7 @@ __all__ = [
     "OasisPandasReaderParquet",
     "get_df_reader",
     "clean_config",
+    "InputReaderConfig",
 ]
 
 try:
