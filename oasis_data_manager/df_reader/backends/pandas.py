@@ -15,6 +15,8 @@ logger = logging.getLogger("oasis_data_manager.df_reader.reader")
 
 class OasisPandasReader(OasisReader):
     def read_csv(self, *args, **kwargs):
+        if pd.__version__ >= "3":  # change default to False issue https://github.com/OasisLMF/OasisLMF/issues/1896
+            kwargs["low_memory"] = kwargs.get("low_memory", False)
         if isinstance(self.filename_or_buffer, str):
             if self.filename_or_buffer.startswith(
                 "http://"
