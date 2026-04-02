@@ -29,6 +29,8 @@ class OasisPandasReader(OasisReader):
             self.df = read_fn(self.filename_or_buffer, *args, **kwargs)
 
     def read_csv(self, *args, **kwargs):
+        if pd.__version__ >= "3":  # remove unsupported options issue https://github.com/OasisLMF/OasisLMF/issues/1896
+            kwargs.pop('low_memory', None)
         self._read_with(pd.read_csv, *args, **kwargs)
 
     def read_parquet(self, *args, **kwargs):
