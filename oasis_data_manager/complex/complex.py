@@ -87,8 +87,7 @@ class ComplexData:
 
     def run(self):
         if self.fetch_required and self.filename:
-            filename_or_url = self.filename if self.filename else self.url
-            extension = pathlib.Path(filename_or_url).suffix
+            extension = pathlib.Path(self.filename).suffix
             self.fetch_required = extension not in [".parquet", ".pq", ".csv"]
 
         fetch_result = None
@@ -123,10 +122,6 @@ class FileStoreComplexData(ComplexData):
 class RestComplexData(ComplexData):
     exceptions = (
         httpx.RequestError,
-        httpx.TimeoutException,
-        httpx.ReadTimeout,
-        httpx.ConnectTimeout,
-        httpx.ConnectError,
         httpcore.ReadTimeout,
         httpcore.ConnectTimeout,
         httpcore.ConnectError,

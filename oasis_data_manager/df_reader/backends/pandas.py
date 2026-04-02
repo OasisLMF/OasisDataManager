@@ -14,45 +14,27 @@ logger = logging.getLogger("oasis_data_manager.df_reader.reader")
 
 
 class OasisPandasReader(OasisReader):
+    def _read_with(self, read_fn, *args, **kwargs):
+        if isinstance(self.filename_or_buffer, str) and not self.filename_or_buffer.startswith(("http://", "https://")):
+            _, uri = self.storage.get_storage_url(
+                self.filename_or_buffer, encode_params=False
+            )
+            self.df = read_fn(
+                uri,
+                *args,
+                **kwargs,
+                storage_options=self.storage.get_fsspec_storage_options(),
+            )
+        else:
+            self.df = read_fn(self.filename_or_buffer, *args, **kwargs)
+
     def read_csv(self, *args, **kwargs):
         if pd.__version__ >= "3":  # remove unsupported options issue https://github.com/OasisLMF/OasisLMF/issues/1896
             kwargs.pop('low_memory', None)
-        if isinstance(self.filename_or_buffer, str):
-            if self.filename_or_buffer.startswith(
-                "http://"
-            ) or self.filename_or_buffer.startswith("https://"):
-                self.df = pd.read_csv(self.filename_or_buffer, *args, **kwargs)
-            else:
-                _, uri = self.storage.get_storage_url(
-                    self.filename_or_buffer, encode_params=False
-                )
-                self.df = pd.read_csv(
-                    uri,
-                    *args,
-                    **kwargs,
-                    storage_options=self.storage.get_fsspec_storage_options(),
-                )
-        else:
-            self.df = pd.read_csv(self.filename_or_buffer, *args, **kwargs)
+        self._read_with(pd.read_csv, *args, **kwargs)
 
     def read_parquet(self, *args, **kwargs):
-        if isinstance(self.filename_or_buffer, str):
-            if self.filename_or_buffer.startswith(
-                "http://"
-            ) or self.filename_or_buffer.startswith("https://"):
-                self.df = pd.read_parquet(self.filename_or_buffer, *args, **kwargs)
-            else:
-                _, uri = self.storage.get_storage_url(
-                    self.filename_or_buffer, encode_params=False
-                )
-                self.df = pd.read_parquet(
-                    uri,
-                    *args,
-                    **kwargs,
-                    storage_options=self.storage.get_fsspec_storage_options(),
-                )
-        else:
-            self.df = pd.read_parquet(self.filename_or_buffer, *args, **kwargs)
+        self._read_with(pd.read_parquet, *args, **kwargs)
 
     def apply_geo(self, shape_filename_path, *args, drop_geo=True, **kwargs):
         """
