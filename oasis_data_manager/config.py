@@ -14,7 +14,7 @@ def load_class(path, base=None):
     module = importlib.import_module(module_path)
     cls = getattr(module, cls_name)
 
-    if base and cls is not base and base not in cls.__bases__:
+    if base and not issubclass(cls, base):
         raise ConfigError(f"'{cls.__name__}' does not extend '{base.__name__}'")
 
     return cls

@@ -53,21 +53,13 @@ class OasisPyarrowReader(OasisReader):
         else:
             ds_filter = None
 
-        if isinstance(self.filename_or_buffer, str):
-            if self.filename_or_buffer.startswith(
-                    "http://"
-            ) or self.filename_or_buffer.startswith("https://"):
-                dataset = ds.dataset(self.filename_or_buffer, partitioning='hive')
-                self.df = dataset.to_table(filter=ds_filter).to_pandas()
-            else:
-                _, uri = self.storage.get_storage_url(
-                    self.filename_or_buffer, encode_params=False
-                )
-
-                uri = uri.replace('file://', '')
-                dataset = ds.dataset(uri, partitioning='hive')
-                self.df = dataset.to_table(filter=ds_filter).to_pandas()
-
+        if isinstance(self.filename_or_buffer, str) and not self.filename_or_buffer.startswith(("http://", "https://")):
+            _, uri = self.storage.get_storage_url(
+                self.filename_or_buffer, encode_params=False
+            )
+            source = uri.replace('file://', '')
         else:
-            dataset = ds.dataset(self.filename_or_buffer, partitioning='hive')
-            self.df = dataset.to_table(filter=ds_filter).to_pandas()
+            source = self.filename_or_buffer
+
+        dataset = ds.dataset(source, partitioning='hive')
+        self.df = dataset.to_table(filter=ds_filter).to_pandas()
