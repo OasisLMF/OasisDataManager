@@ -1,4 +1,4 @@
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 # --- Short reader aliases -------------------------------------------------- #
 from .df_reader.backends.base import OasisReader

@@ -42,23 +42,20 @@ class StrictRootDirFs(DirFileSystem):
 
         return res
 
-    def exists(self, path):
+    def _safe_check(self, method_name, path):
         try:
-            return super().exists(path)
+            return getattr(super(), method_name)(path)
         except FileNotFoundError:
             return False
+
+    def exists(self, path):
+        return self._safe_check('exists', path)
 
     def isfile(self, path):
-        try:
-            return super().isfile(path)
-        except FileNotFoundError:
-            return False
+        return self._safe_check('isfile', path)
 
     def isdir(self, path):
-        try:
-            return super().isdir(path)
-        except FileNotFoundError:
-            return False
+        return self._safe_check('isdir', path)
 
 
 class BaseStorage(object):
@@ -80,6 +77,11 @@ class BaseStorage(object):
 
         self.logger = logger or logging.getLogger()
         self._fs: Optional[StrictRootDirFs] = None
+
+    @staticmethod
+    def _normalize_root_dir(container, root_dir):
+        result = os.path.join(container or "", root_dir)
+        return result.strip(os.path.sep)
 
     def to_config(self) -> dict:
         return {
@@ -215,14 +217,12 @@ class BaseStorage(object):
                 raise OasisDataManagerException("Error: caching disabled for this filesystem and no_cache_target not provided")
             Path(no_cache_target).parent.mkdir(parents=True, exist_ok=True)
             if self._is_valid_url(reference):
-                with urlopen(reference, timeout=30) as r:
-                    data = r.read()
-                with open(no_cache_target, "wb") as f:
-                    f.write(data)
-                    logging.info("Get from URL: {}".format(reference))
+                with urlopen(reference, timeout=30) as r, open(no_cache_target, "wb") as f:
+                    shutil.copyfileobj(r, f)
+                self.logger.info("Get from URL: {}".format(reference))
             else:
                 self.fs.get(reference, no_cache_target, recursive=True)
-                logging.info("Get from Filestore: {}".format(reference))
+                self.logger.info("Get from Filestore: {}".format(reference))
             return no_cache_target
 
         # Caching enabled
