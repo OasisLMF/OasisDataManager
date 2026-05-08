@@ -3,6 +3,7 @@ import os
 from typing import Optional
 from urllib import parse
 from urllib.parse import parse_qsl, urlsplit
+from pathlib import Path
 
 import fsspec
 from fsspec.asyn import sync
@@ -52,12 +53,33 @@ class AwsS3Storage(BaseStorage):
         root_dir="",
         **kwargs,
     ):
-        """Storage connector for Amazon S3.
+        """Storage Connector for Amazon S3
+
+        Store objects in a bucket common to a single worker pool. Returns a pre-signed URL
+        as a response to the server which is downloaded and stored by Django-storage module
+
+        Documentation
+        -------------
+        https://github.com/jschneier/django-storages/blob/master/storages/backends/s3boto3.py
+        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#id244
+
+        TODO
+        ----
+
+        * Add optional local caching
+        * option to set object expiry policy on bucket
+
+            def _get_bucket_policy(self):
+                pass
+            def _set_lifecycle(self, ):
+                pass
+                https://stackoverflow.com/questions/14969273/s3-object-expiration-using-boto
+                https://boto3.amazonaws.com/v1/documentation/api/latest/guide/s3-example-bucket-policies.html
 
         Parameters
         ----------
-        :param bucket_name: S3 bucket name
-        :type  bucket_name: str
+        :param settings_conf: Settings object for worker
+        :type settings_conf: src.conf.iniconf.Settings
         """
         bucket_acl = bucket_acl or default_acl
         object_parameters = object_parameters or {}
@@ -97,16 +119,8 @@ class AwsS3Storage(BaseStorage):
         self.gzip_content_types = gzip_content_types
         set_aws_log_level(self.aws_log_level)
 
-        # Save original root_dir (before bucket_name is prepended) for round-trip serialization
-        self._root_dir_arg = root_dir
-
-        root_dir = os.path.join(self.bucket_name or "", root_dir)
-        if root_dir.startswith(os.path.sep):
-            root_dir = root_dir[1:]
-        if root_dir.endswith(os.path.sep):
-            root_dir = root_dir[:-1]
-
-        super().__init__(root_dir=root_dir, **kwargs)
+        root_dir = self._normalize_root_dir(self.bucket_name, root_dir)
+        super(AwsS3Storage, self).__init__(root_dir=root_dir, **kwargs)
 
     @property
     def config_options(self):
@@ -137,7 +151,7 @@ class AwsS3Storage(BaseStorage):
             "max_memory_size": self.max_memory_size,
             "shared_bucket": self.shared_bucket,
             "aws_log_level": self.aws_log_level,
-            "root_dir": self._root_dir_arg,
+            "root_dir": str(Path(self.root_dir).relative_to(self.bucket_name)),
             "gzip_content_types": self.gzip_content_types,
         }
 
