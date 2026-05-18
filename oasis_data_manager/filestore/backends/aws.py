@@ -3,8 +3,6 @@ import os
 from typing import Optional
 from urllib import parse
 from urllib.parse import parse_qsl, urlsplit
-from pathlib import Path
-
 import fsspec
 from fsspec.asyn import sync
 
@@ -119,6 +117,7 @@ class AwsS3Storage(BaseStorage):
         self.gzip_content_types = gzip_content_types
         set_aws_log_level(self.aws_log_level)
 
+        self._root_dir_arg = root_dir
         root_dir = self._normalize_root_dir(self.bucket_name, root_dir)
         super(AwsS3Storage, self).__init__(root_dir=root_dir, **kwargs)
 
@@ -151,7 +150,7 @@ class AwsS3Storage(BaseStorage):
             "max_memory_size": self.max_memory_size,
             "shared_bucket": self.shared_bucket,
             "aws_log_level": self.aws_log_level,
-            "root_dir": str(Path(self.root_dir).relative_to(self.bucket_name)),
+            "root_dir": self._root_dir_arg,
             "gzip_content_types": self.gzip_content_types,
         }
 

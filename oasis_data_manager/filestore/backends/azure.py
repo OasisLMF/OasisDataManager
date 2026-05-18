@@ -2,7 +2,6 @@ import logging
 import os
 from typing import Optional
 from urllib import parse
-from pathlib import Path
 import fsspec
 
 from ..log import set_azure_log_level
@@ -64,7 +63,8 @@ class AzureABFSStorage(BaseStorage):
         self.endpoint_url = endpoint_url
         set_azure_log_level(self.azure_log_level)
 
-        root_dir = self._normalize_root_dir(self.azure_container, root_dir or location or "")
+        self._root_dir_arg = root_dir or location or ""
+        root_dir = self._normalize_root_dir(self.azure_container, self._root_dir_arg)
         super(AzureABFSStorage, self).__init__(root_dir=root_dir, **kwargs)
 
     @property
@@ -87,7 +87,7 @@ class AzureABFSStorage(BaseStorage):
             "custom_domain": self.custom_domain,
             "token_credential": self.token_credential,
             "azure_log_level": self.azure_log_level,
-            "root_dir": str(Path(self.root_dir).relative_to(self.azure_container)),
+            "root_dir": self._root_dir_arg,
             "endpoint_url": self.endpoint_url,
         }
 
