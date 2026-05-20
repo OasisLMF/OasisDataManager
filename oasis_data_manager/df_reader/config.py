@@ -33,7 +33,7 @@ def clean_config(config: Union[str, dict]) -> dict:
 
     if "engine" not in _config:
         _config["engine"] = {
-            "path": "oasis_data_manager.df_reader.reader.OasisPandasReader",
+            "path": "OasisPandasReader",
             "options": {},
         }
     elif isinstance(_config.get("engine"), str):
@@ -44,7 +44,7 @@ def clean_config(config: Union[str, dict]) -> dict:
         except json.JSONDecodeError:
             _config["engine"] = {"path": _config.get("engine"), "options": {}}
 
-    _config["engine"].setdefault("path", "oasis_data_manager.df_reader.reader.OasisPandasReader")
+    _config["engine"].setdefault("path", "OasisPandasReader")
     _config["engine"].setdefault("options", {})
 
     return _config

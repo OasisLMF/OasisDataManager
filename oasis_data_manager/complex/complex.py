@@ -63,7 +63,7 @@ class ComplexData:
 
     def get_df_reader(self, filepath, **kwargs) -> OasisReader:
         df_reader_config = clean_config(
-            {"filepath": filepath, "engine": "oasis_data_manager.df_reader.reader.OasisDaskReader"}
+            {"filepath": filepath, "engine": "OasisDaskReader"}
         )
         df_reader_config["engine"]["options"]["storage"] = self.storage
 

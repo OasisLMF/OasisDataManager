@@ -91,7 +91,7 @@ Used throughout the OasisLMF platform to configure storage from serialisable dic
 from oasis_data_manager.filestore.config import get_storage_from_config
 
 config = {
-    "storage_class": "oasis_data_manager.filestore.backends.aws.AwsS3Storage",
+    "storage_class": "AwsS3Storage",
     "options": {
         "bucket_name": "my-bucket",
         "access_key": "AKIA...",
@@ -197,7 +197,7 @@ config = {
     "path": "accounts.csv",
     "storage": storage,
     "options": {"dtype": {"LocNumber": str}},
-    "engine": "oasis_data_manager.df_reader.backends.pandas.OasisPandasReaderCSV",
+    "engine": "OasisPandasReaderCSV",
 }
 reader = get_df_reader(config)
 df = reader.as_pandas()
