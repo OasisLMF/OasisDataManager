@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile
 import geopandas as gpd
 import pandas as pd
 import pytest
-import requests
+import requests  # type: ignore[import-untyped]
 from shapely.geometry import Point
 
 from oasis_data_manager.df_reader.reader import (
