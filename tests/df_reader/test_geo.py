@@ -1,3 +1,4 @@
+import zipfile
 from tempfile import NamedTemporaryFile
 
 import geopandas as gpd
@@ -29,11 +30,14 @@ storage = LocalStorage("/")
 
 @pytest.fixture(scope="session")
 def nybb_path(tmp_path_factory):
-    dest = tmp_path_factory.mktemp("nybb") / "nybb_16a.zip"
+    tmp = tmp_path_factory.mktemp("nybb")
+    zip_dest = tmp / "nybb_16a.zip"
     r = requests.get(NYBB_URL, timeout=30)
     r.raise_for_status()
-    dest.write_bytes(r.content)
-    return str(dest)
+    zip_dest.write_bytes(r.content)
+    with zipfile.ZipFile(zip_dest) as zf:
+        zf.extractall(tmp)
+    return str(next(tmp.rglob("*.shp")))
 
 
 @pytest.fixture
