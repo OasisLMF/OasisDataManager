@@ -1,9 +1,10 @@
+import zipfile
 from tempfile import NamedTemporaryFile
 
-import geodatasets
 import geopandas as gpd
 import pandas as pd
 import pytest
+import requests  # type: ignore[import-untyped]
 from shapely.geometry import Point
 
 from oasis_data_manager.df_reader.reader import (
@@ -13,6 +14,8 @@ from oasis_data_manager.df_reader.reader import (
     OasisPandasReaderParquet,
 )
 from oasis_data_manager.filestore.backends.local import LocalStorage
+
+NYBB_URL = "https://raw.githubusercontent.com/geopandas/geodatasets/main/data_backup/nybb_16a.zip"
 
 READERS = [
     OasisPandasReaderCSV,
@@ -25,14 +28,26 @@ READERS = [
 storage = LocalStorage("/")
 
 
+@pytest.fixture(scope="session")
+def nybb_path(tmp_path_factory):
+    tmp = tmp_path_factory.mktemp("nybb")
+    zip_dest = tmp / "nybb_16a.zip"
+    r = requests.get(NYBB_URL, timeout=30)
+    r.raise_for_status()
+    zip_dest.write_bytes(r.content)
+    with zipfile.ZipFile(zip_dest) as zf:
+        zf.extractall(tmp)
+    return str(next(tmp.rglob("*.shp")))
+
+
 @pytest.fixture
-def df():
+def df(nybb_path):
     """
     df representing data with a long/lat, here we pull some values from
     within the nybb dataset used in tests to create some values in
     out expected boroughs.
     """
-    b = [int(x) for x in gpd.read_file(geodatasets.get_path("nybb")).total_bounds]
+    b = [int(x) for x in gpd.read_file(nybb_path).total_bounds]
 
     return pd.DataFrame(
         [
@@ -46,7 +61,7 @@ def df():
 
 
 @pytest.mark.parametrize("reader", READERS)
-def test_read__expected_pandas_dataframe(reader, df):
+def test_read__expected_pandas_dataframe(reader, df, nybb_path):
     suffix = ".csv" if "csv" in reader.__name__.lower() else ".parquet"
     with NamedTemporaryFile(suffix=suffix) as file:
         if suffix == ".csv":
@@ -56,7 +71,7 @@ def test_read__expected_pandas_dataframe(reader, df):
 
         result = (
             reader(file.name, storage)
-            .apply_geo(geodatasets.get_path("nybb"))
+            .apply_geo(nybb_path)
             .as_pandas()
         )
 
@@ -70,7 +85,7 @@ def test_read__expected_pandas_dataframe(reader, df):
 
 
 @pytest.mark.parametrize("reader", READERS)
-def test_read__expected_pandas_dataframe__drop_geo(reader, df):
+def test_read__expected_pandas_dataframe__drop_geo(reader, df, nybb_path):
     suffix = ".csv" if "csv" in reader.__name__.lower() else ".parquet"
     with NamedTemporaryFile(suffix=suffix) as file:
         if suffix == ".csv":
@@ -83,7 +98,7 @@ def test_read__expected_pandas_dataframe__drop_geo(reader, df):
                 file.name,
                 storage,
             )
-            .apply_geo(geodatasets.get_path("nybb"), drop_geo=False)
+            .apply_geo(nybb_path, drop_geo=False)
             .as_pandas()
         )
 
@@ -123,7 +138,7 @@ def test_read__expected_pandas_dataframe__drop_geo(reader, df):
 
 
 @pytest.mark.parametrize("reader", READERS)
-def test_read__gql_filter__expected_pandas_dataframe(reader, df):
+def test_read__gql_filter__expected_pandas_dataframe(reader, df, nybb_path):
     suffix = ".csv" if "csv" in reader.__name__.lower() else ".parquet"
     with NamedTemporaryFile(suffix=suffix) as file:
         if suffix == ".csv":
@@ -133,7 +148,7 @@ def test_read__gql_filter__expected_pandas_dataframe(reader, df):
 
         result = (
             reader(file.name, storage)
-            .apply_geo(geodatasets.get_path("nybb"))
+            .apply_geo(nybb_path)
             .filter([lambda x: x[x["longitude"] == 1028825]])
             .as_pandas()
         )
@@ -148,7 +163,7 @@ def test_read__gql_filter__expected_pandas_dataframe(reader, df):
 
 
 @pytest.mark.parametrize("reader", READERS)
-def test_read__shape_file__invalid(reader, df, caplog):
+def test_read__shape_file__invalid(reader, df, nybb_path, caplog):
     df = df.rename(columns={"longitude": "lon", "latitude": "lat"})
 
     suffix = ".csv" if "csv" in reader.__name__.lower() else ".parquet"
@@ -163,7 +178,7 @@ def test_read__shape_file__invalid(reader, df, caplog):
                 file.name,
                 storage,
             )
-            .apply_geo(geodatasets.get_path("nybb"))
+            .apply_geo(nybb_path)
             .as_pandas()
         )
 
