@@ -256,10 +256,18 @@ class AwsS3Storage(BaseStorage):
         else:
             return self._strip_signing_parameters(url)
 
+    def put(self, reference, filename=None, subdir="", suffix=None, arcname=None):
+        # Prepend location so the returned key is bucket-relative (location/subdir/file).
+        # The server's CopyObject and is_in_bucket() both use the raw bucket key, so the
+        # returned value must include the location prefix, not be relative to it.
+        effective_subdir = os.path.join(self.location, subdir) if self.location else subdir
+        return super().put(reference, filename=filename, subdir=effective_subdir, suffix=suffix, arcname=arcname)
+
     def get_storage_url(self, filename=None, suffix="tar.gz", encode_params=True):
         filename = (
             filename if filename is not None else self._get_unique_filename(suffix)
         )
+        key = os.path.join(self.location, filename) if self.location else filename
 
         params = {}
         if encode_params:
@@ -279,8 +287,8 @@ class AwsS3Storage(BaseStorage):
                 params["endpoint"] = self.endpoint_url
 
         return (
-            filename,
-            f"s3://{os.path.join(self.root_dir, filename)}{'?' if params else ''}{parse.urlencode(params) if params else ''}",
+            key,
+            f"s3://{os.path.join(self.root_dir, key)}{'?' if params else ''}{parse.urlencode(params) if params else ''}",
         )
 
     @contextlib.contextmanager
