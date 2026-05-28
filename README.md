@@ -131,7 +131,7 @@ storage.delete_file("remote/old.csv")
 | `OasisDaskReader` | Dask | CSV, Parquet | In-memory via dask-sql |
 | `OasisPyarrowReader` | PyArrow | Parquet only | Predicate pushdown (pre-load) |
 
-Format-specific subclasses (`OasisPandasReaderCSV`, `OasisDaskReaderParquet`, etc.) are also available.
+Format-specific subclasses (`OasisPandasReaderCSV`, `OasisDaskReaderParquet`, etc.) are available for Pandas and Dask, but only base OasisPyarrowReader is available and uses parquet.
 
 ### Fluent API
 
