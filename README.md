@@ -28,16 +28,17 @@ pip install -e ".[extra]"
 ## Quick start
 
 ```python
-from oasis_data_manager import PandasReader, LocalStorage
+from oasis_data_manager.df_reader.backends.pandas import OasisPandasReader
+from oasis_data_manager.filestore.backends.local import LocalStorage
 
 storage = LocalStorage("/data")
 
 # Read a CSV and get a pandas DataFrame
-df = PandasReader("accounts.csv", storage).as_pandas()
+df = OasisPandasReader("accounts.csv", storage).as_pandas()
 
 # Chain filters
 df = (
-    PandasReader("accounts.csv", storage)
+    OasisPandasReader("accounts.csv", storage)
     .filter([lambda x: x[x["PortNumber"] == "1"]])
     .as_pandas()
 )
@@ -52,7 +53,7 @@ Three backends are provided. All share the same interface.
 ### Local
 
 ```python
-from oasis_data_manager.filestore import LocalStorage
+from oasis_data_manager.filestore.backends.local import LocalStorage
 
 storage = LocalStorage(root_dir="/data")
 ```
@@ -60,7 +61,7 @@ storage = LocalStorage(root_dir="/data")
 ### AWS S3
 
 ```python
-from oasis_data_manager.filestore import AwsS3Storage
+from oasis_data_manager.filestore.backends.aws import AwsS3Storage
 
 storage = AwsS3Storage(
     bucket_name="my-bucket",
@@ -73,7 +74,7 @@ storage = AwsS3Storage(
 ### Azure Blob Storage
 
 ```python
-from oasis_data_manager.filestore import AzureABFSStorage
+from oasis_data_manager.filestore.backends.azure import AzureABFSStorage
 
 storage = AzureABFSStorage(
     account_name="myaccount",
@@ -126,9 +127,9 @@ storage.delete_file("remote/old.csv")
 
 | Class | Engine | Formats |
 |---|---|---|
-| `OasisPandasReader` / `PandasReader` | pandas | CSV, Parquet |
-| `OasisDaskReader` / `DaskReader` | Dask | CSV, Parquet |
-| `OasisPyarrowReader` / `PyarrowReader` | PyArrow | Parquet |
+| `OasisPandasReader` | pandas | CSV, Parquet |
+| `OasisDaskReader` | Dask | CSV, Parquet |
+| `OasisPyarrowReader` | PyArrow | Parquet |
 
 Format-specific subclasses (`OasisPandasReaderCSV`, `OasisDaskReaderParquet`, etc.) are also available.
 
@@ -137,18 +138,20 @@ Format-specific subclasses (`OasisPandasReaderCSV`, `OasisDaskReaderParquet`, et
 All readers share the same chainable interface. The actual file read is **lazy** — it happens on the first access to `.df` or when `.as_pandas()` is called.
 
 ```python
-from oasis_data_manager import PandasReader, DaskReader, LocalStorage
+from oasis_data_manager.df_reader.backends.pandas import OasisPandasReader
+from oasis_data_manager.df_reader.backends.dask import OasisDaskReader
+from oasis_data_manager.filestore.backends.local import LocalStorage
 
 storage = LocalStorage("/data")
 
 # Pandas — CSV
-df = PandasReader("losses.csv", storage).as_pandas()
+df = OasisPandasReader("losses.csv", storage).as_pandas()
 
 # Pandas — Parquet (detected automatically from extension)
-df = PandasReader("losses.parquet", storage).as_pandas()
+df = OasisPandasReader("losses.parquet", storage).as_pandas()
 
 # Dask
-df = DaskReader("losses.csv", storage).as_pandas()
+df = OasisDaskReader("losses.csv", storage).as_pandas()
 ```
 
 ### Filtering
@@ -157,7 +160,7 @@ Pass a list of callables; each receives the DataFrame and must return a (filtere
 
 ```python
 df = (
-    PandasReader("locations.csv", storage)
+    OasisPandasReader("locations.csv", storage)
     .filter([
         lambda x: x[x["CountryCode"] == "US"],
         lambda x: x[x["LocNumber"].notna()],
@@ -171,10 +174,10 @@ df = (
 Requires `dask-sql`. The reserved table name is `table`.
 
 ```python
-from oasis_data_manager import DaskReader
+from oasis_data_manager.df_reader.backends.dask import OasisDaskReader
 
 df = (
-    DaskReader("locations.csv", storage)
+    OasisDaskReader("locations.csv", storage)
     .sql("SELECT LocNumber, Latitude, Longitude FROM table WHERE CountryCode = 'US'")
     .as_pandas()
 )
@@ -185,13 +188,13 @@ df = (
 `.query(fn)` passes the raw DataFrame to any callable and returns the result directly (not a reader).
 
 ```python
-count = PandasReader("losses.csv", storage).query(lambda df: len(df))
+count = OasisPandasReader("losses.csv", storage).query(lambda df: len(df))
 ```
 
 ### Configuration dict pattern
 
 ```python
-from oasis_data_manager.df_reader import get_df_reader
+from oasis_data_manager.df_reader.config import get_df_reader
 
 config = {
     "path": "accounts.csv",
@@ -271,20 +274,21 @@ from oasis_data_manager.errors import OasisDataManagerException, MissingInputsEx
 
 ## Import paths
 
-Short aliases are available at multiple levels:
-
 ```python
-# Top-level
-from oasis_data_manager import PandasReader, DaskReader, PyarrowReader
-from oasis_data_manager import LocalStorage, AwsS3Storage, AzureABFSStorage
-
-# Subpackage
-from oasis_data_manager.filestore import LocalStorage, AwsS3Storage, AzureABFSStorage
-from oasis_data_manager.df_reader import OasisPandasReader, get_df_reader
-
-# Full paths (also valid)
+# Storage backends
+from oasis_data_manager.filestore.backends.local import LocalStorage
 from oasis_data_manager.filestore.backends.aws import AwsS3Storage
-from oasis_data_manager.df_reader.backends.pandas import OasisPandasReaderCSV
+from oasis_data_manager.filestore.backends.azure import AzureABFSStorage
+from oasis_data_manager.filestore.config import get_storage_from_config
+
+# DataFrame readers
+from oasis_data_manager.df_reader.backends.pandas import OasisPandasReader, OasisPandasReaderCSV, OasisPandasReaderParquet
+from oasis_data_manager.df_reader.backends.dask import OasisDaskReader, OasisDaskReaderCSV, OasisDaskReaderParquet
+from oasis_data_manager.df_reader.backends.pyarrow import OasisPyarrowReader
+from oasis_data_manager.df_reader.config import get_df_reader
+
+# Exceptions
+from oasis_data_manager.errors import OasisDataManagerException, OasisException
 ```
 
 Deprecated module paths (`filestore/backends/aws_s3.py`, `filestore/backends/azure_abfs.py`) still work but emit a `DeprecationWarning`.
