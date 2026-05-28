@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-dd = pytest.importorskip("dask.dataframe")
+from dask import dataframe as dd
 
 from oasis_data_manager.complex.complex import Adjustment, ComplexData
 from oasis_data_manager.df_reader.reader import OasisReader

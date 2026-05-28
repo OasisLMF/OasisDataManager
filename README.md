@@ -125,11 +125,11 @@ storage.delete_file("remote/old.csv")
 
 ### Reader backends
 
-| Class | Engine | Formats |
-|---|---|---|
-| `OasisPandasReader` | pandas | CSV, Parquet |
-| `OasisDaskReader` | Dask | CSV, Parquet |
-| `OasisPyarrowReader` | PyArrow | Parquet |
+| Class | Engine | Formats | Filter behaviour |
+|---|---|---|---|
+| `OasisPandasReader` | pandas | CSV, Parquet | In-memory (post-load) |
+| `OasisDaskReader` | Dask | CSV, Parquet | In-memory via dask-sql |
+| `OasisPyarrowReader` | PyArrow | Parquet only | Predicate pushdown (pre-load) |
 
 Format-specific subclasses (`OasisPandasReaderCSV`, `OasisDaskReaderParquet`, etc.) are also available.
 
@@ -168,6 +168,28 @@ df = (
     .as_pandas()
 )
 ```
+
+`OasisPandasReader` and `OasisDaskReader` apply filters **after** loading the full file into memory. `OasisPyarrowReader` accepts a `filters` kwarg (list of tuples or list of lists) that is pushed down into the Parquet engine before any data is read into memory — use this for large Parquet files where row-group skipping matters.
+
+```python
+from oasis_data_manager.df_reader.backends.pyarrow import OasisPyarrowReader
+
+# AND of conditions — list of tuples
+df = (
+    OasisPyarrowReader("losses.parquet", storage)
+    .read(filters=[("CountryCode", "==", "US"), ("TIV", ">=", 1_000_000)])
+    .as_pandas()
+)
+
+# OR of AND-groups — list of lists
+df = (
+    OasisPyarrowReader("losses.parquet", storage)
+    .read(filters=[[("CountryCode", "==", "US")], [("CountryCode", "==", "GB")]])
+    .as_pandas()
+)
+```
+
+Supported operators: `==`, `!=`, `<`, `<=`, `>`, `>=`, `in`, `not in`.
 
 ### SQL (Dask only)
 
