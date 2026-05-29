@@ -6,7 +6,7 @@ import pytest
 import urllib3
 from fsspec.asyn import sync
 
-from oasis_data_manager.filestore.backends.aws_s3 import AwsS3Storage
+from oasis_data_manager.filestore.backends.aws import AwsS3Storage
 from oasis_data_manager.filestore.config import get_storage_from_config
 
 

@@ -13,18 +13,16 @@ from urllib.request import urlopen
 import fsspec
 from fsspec.implementations.dirfs import DirFileSystem
 
-from oasis_data_manager.errors import OasisException
+from oasis_data_manager.errors import OasisDataManagerException
 import xxhash
 
 LOG_FILE_SUFFIX = "txt"
 ARCHIVE_FILE_SUFFIX = "tar.gz"
 
 
-class MissingInputsException(OasisException):
+class MissingInputsException(OasisDataManagerException):
     def __init__(self, input_filepath):
-        super(MissingInputsException, self).__init__(
-            "Input file not found: {}".format(input_filepath)
-        )
+        super().__init__(f"Input file not found: {input_filepath}")
 
 
 class StrictRootDirFs(DirFileSystem):
@@ -216,7 +214,7 @@ class BaseStorage(object):
         # No cache root configured, just return data
         if not enable_etag_cache:
             if not no_cache_target:
-                raise OasisException("Error: caching disabled for this filesystem and no_cache_target not provided")
+                raise OasisDataManagerException("Error: caching disabled for this filesystem and no_cache_target not provided")
             Path(no_cache_target).parent.mkdir(parents=True, exist_ok=True)
             if self._is_valid_url(reference):
                 with urlopen(reference, timeout=30) as r, open(no_cache_target, "wb") as f:
@@ -238,7 +236,7 @@ class BaseStorage(object):
 
         # Raise error if type is not file
         if info.get("type") == "directory":
-            raise OasisException(f"Directories are not supported in get_from_cache: {reference}")
+            raise OasisDataManagerException(f"Directories are not supported in get_from_cache: {reference}")
 
         remote_etag = info.get("ETag") or info.get("etag")
         if remote_etag is None:
@@ -394,9 +392,9 @@ class BaseStorage(object):
         """
         if self.fs.isfile(reference):
             self.fs.delete(reference)
-            self.logger.info("Deleted Shared file: {}".format(reference))
+            self.logger.info(f"Deleted Shared file: {reference}")
         else:
-            self.logger.info("Delete Error - Unknwon reference {}".format(reference))
+            self.logger.info(f"Delete Error - Unknown reference {reference}")
 
     def delete_dir(self, reference):
         """
@@ -410,9 +408,9 @@ class BaseStorage(object):
                 self.logger.info("Delete Error - prevented media root deletion")
             else:
                 self.fs.delete(reference, recursive=True)
-                self.logger.info("Deleted shared dir: {}".format(reference))
+                self.logger.info(f"Deleted shared dir: {reference}")
         else:
-            self.logger.info("Delete Error - Unknwon reference {}".format(reference))
+            self.logger.info(f"Delete Error - Unknown reference {reference}")
 
     def create_traceback(self, stdout, stderr, output_dir=""):
         traceback_file = self._get_unique_filename(LOG_FILE_SUFFIX)
@@ -421,6 +419,7 @@ class BaseStorage(object):
                 f.write(stdout)
             if stderr:
                 f.write(stderr)
+            f.flush()
 
             self.put(f.name, filename=traceback_file)
         return traceback_file

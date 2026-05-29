@@ -14,10 +14,6 @@ class BaseStorageConfig(TypedDict):
     cache_dir: str
 
 
-class LocalStorageConfig(BaseStorageConfig):
-    pass
-
-
 class S3StorageConfig(BaseStorageConfig):
     bucket_name: NotRequired[str]
     access_key: NotRequired[str]
@@ -73,7 +69,7 @@ class AbfsStorageConfig(BaseStorageConfig):
 class StorageConfig(TypedDict):
     storage_class: str
     options: Union[
-        LocalStorageConfig,
+        BaseStorageConfig,
         S3StorageConfig,
         AbfsStorageConfig,
     ]

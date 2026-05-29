@@ -10,9 +10,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
-from oasis_data_manager.errors import OasisException
-from oasis_data_manager.filestore.backends.aws_s3 import AwsS3Storage
-from oasis_data_manager.filestore.backends.azure_abfs import AzureABFSStorage
+from oasis_data_manager.errors import OasisDataManagerException, OasisException
+from oasis_data_manager.filestore.backends.aws import AwsS3Storage
+from oasis_data_manager.filestore.backends.azure import AzureABFSStorage
 from oasis_data_manager.filestore.backends.base import MissingInputsException, BaseStorage
 
 
@@ -85,7 +85,7 @@ def _setup_azure_storage(cache_dir):
     except ResourceExistsError:
         print(f"Container '{container_name}' already exists.")
     except Exception as e:
-        raise OasisException(f"An error occurred for creating the azurite container: {e}")
+        raise OasisDataManagerException(f"An error occurred for creating the azurite container: {e}")
     container_client = blob_service.get_container_client(container_name)
 
     # upload_file function
@@ -127,7 +127,7 @@ def storage_context(request):
     elif backend_type == "azure":
         storage, upload_fn, cleanup_fn = _setup_azure_storage(cache_dir)
     else:
-        raise OasisException(f"Unsupported backend_type ({backend_type}) for testing")
+        raise OasisDataManagerException(f"Unsupported backend_type ({backend_type}) for testing")
 
     yield StorageContext(storage=storage, upload_file=upload_fn)
 
