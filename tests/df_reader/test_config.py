@@ -1,7 +1,7 @@
 import pytest
 
 from oasis_data_manager.df_reader.config import ConfigError, OasisReader, get_df_reader
-from oasis_data_manager.df_reader.reader import OasisPandasReader
+from oasis_data_manager.df_reader.backends.pandas import OasisPandasReader, OasisPandasReaderCSV
 
 
 class DfReader(OasisReader):
@@ -113,7 +113,7 @@ def test_path_is_not_absolute_path___error_is_raised():
         )
 
     assert str(exec_info.value) == (
-        "'path' found in the df_reader config is not valid: path_to_a_module"
+        "'path_to_a_module' is not a valid class path (expected 'module.ClassName' or a known alias)"
     )
 
 
@@ -162,3 +162,13 @@ def test_reader_isnt_an_instance_of_the_base_reader____error_is_raised():
         )
 
     assert str(exec_info.value) == "'NotDfReader' does not extend 'OasisReader'"
+
+
+def test_engine_alias_short_name___resolves_to_correct_class():
+    reader = get_df_reader({"filepath": "testpath", "engine": "OasisPandasReader"})
+    assert type(reader) is OasisPandasReader
+
+
+def test_engine_alias_csv_short_name___resolves_to_correct_class():
+    reader = get_df_reader({"filepath": "testpath", "engine": "OasisPandasReaderCSV"})
+    assert type(reader) is OasisPandasReaderCSV

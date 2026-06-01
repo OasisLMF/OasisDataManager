@@ -34,6 +34,8 @@ class OasisDaskReader(OasisReader):
         super().__init__(*args, **kwargs)
 
     def copy_with_df(self, df):
+        if not isinstance(df, dd.DataFrame):
+            df = dd.from_pandas(df, npartitions=1)
         res = super().copy_with_df(df)
         res.client = self.client
         return res

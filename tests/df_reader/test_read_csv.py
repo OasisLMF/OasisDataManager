@@ -5,11 +5,21 @@ import numpy as np
 import pandas as pd
 import pytest
 
+try:
+    import dask.dataframe as dd
+except ModuleNotFoundError:
+    dd = None
+
 from oasis_data_manager.df_reader.exceptions import InvalidSQLException
-from oasis_data_manager.df_reader.reader import OasisDaskReaderCSV, OasisPandasReaderCSV
+from oasis_data_manager.df_reader.reader import OasisPandasReaderCSV
 from oasis_data_manager.filestore.backends.local import LocalStorage
 
-READERS = [OasisPandasReaderCSV, OasisDaskReaderCSV]
+try:
+    from oasis_data_manager.df_reader.reader import OasisDaskReaderCSV
+except ImportError:
+    OasisDaskReaderCSV = None  # type: ignore[misc,assignment]
+
+READERS = [r for r in [OasisPandasReaderCSV, OasisDaskReaderCSV] if r is not None]
 
 storage = LocalStorage("/")
 
@@ -110,6 +120,7 @@ def test_read_csv__df_filter__multiple__expected_pandas_dataframe(reader, df):
         }
 
 
+@pytest.mark.skipif(OasisDaskReaderCSV is None, reason="dask not installed")
 def test_read_csv__dask__removes_bad_kwargs(df):
     with NamedTemporaryFile(suffix=".csv") as csv:
         df.to_csv(
@@ -185,3 +196,82 @@ def test_read_csv__dask__sql__no_data(df):
             "E": {},
             "F": {},
         }
+
+
+# ---------------------------------------------------------------------------
+# OasisReader.query()
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("reader", READERS)
+def test_query__returns_function_result(reader, df):
+    with NamedTemporaryFile(suffix=".csv") as csv:
+        df.to_csv(path_or_buf=csv.name, encoding="utf-8", index=False)
+
+        result = reader(csv.name, storage).query(lambda frame: len(frame))
+
+        assert result == 4
+
+
+@pytest.mark.parametrize("reader", READERS)
+def test_query__dataframe_transform(reader, df):
+    with NamedTemporaryFile(suffix=".csv") as csv:
+        df.to_csv(path_or_buf=csv.name, encoding="utf-8", index=False)
+
+        result = reader(csv.name, storage).query(lambda frame: frame["D"].sum())
+
+        # Dask returns a lazy scalar; compute it before comparing
+        if hasattr(result, "compute"):
+            result = result.compute()
+        assert result == 12  # 4 rows × D=3
+
+
+# ---------------------------------------------------------------------------
+# OasisReader.copy_with_df()
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("reader", READERS)
+def test_copy_with_df__new_reader_has_replacement_dataframe(reader, df):
+    with NamedTemporaryFile(suffix=".csv") as csv:
+        df.to_csv(path_or_buf=csv.name, encoding="utf-8", index=False)
+
+        original = reader(csv.name, storage)
+        # Trigger read first (copy_with_df is called post-read e.g. from filter())
+        original._read()
+        replacement = pd.DataFrame({"X": [1, 2, 3]})
+        copy = original.copy_with_df(replacement)
+
+        assert type(copy) is type(original)
+        result = copy.as_pandas()
+        # Dask returns a computed dask DataFrame; normalize to pandas
+        if dd is not None and isinstance(result, dd.DataFrame):
+            result = result.compute()
+        assert list(result.columns) == ["X"]
+        assert len(result) == 3
+
+
+@pytest.mark.parametrize("reader", READERS)
+def test_copy_with_df__original_reader_unchanged(reader, df):
+    with NamedTemporaryFile(suffix=".csv") as csv:
+        df.to_csv(path_or_buf=csv.name, encoding="utf-8", index=False)
+
+        original = reader(csv.name, storage)
+        _ = original.copy_with_df(pd.DataFrame({"X": [1]}))
+
+        # original should still read the full CSV
+        result = original.as_pandas()
+        assert len(result) == 4
+
+
+# ---------------------------------------------------------------------------
+# OasisDaskReader.read_from_dataframe()
+# ---------------------------------------------------------------------------
+
+@pytest.mark.skipif(OasisDaskReaderCSV is None or dd is None, reason="dask not installed")
+def test_dask_read_from_dataframe__converts_pandas_to_dask(df):
+    """Passing a pandas df via dataframe= should be available as a dask DataFrame."""
+    dask_reader = OasisDaskReaderCSV(None, storage, dataframe=df, has_read=True)
+
+    assert isinstance(dask_reader._df, dd.DataFrame)
+    result = dask_reader.as_pandas()
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) == 4

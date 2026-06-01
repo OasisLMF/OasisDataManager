@@ -2,10 +2,15 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from oasis_data_manager.df_reader.reader import OasisDaskReader, OasisPandasReader, OasisReader
+from oasis_data_manager.df_reader.reader import OasisPandasReader, OasisReader
 from oasis_data_manager.filestore.backends.local import LocalStorage
 
-READERS = [OasisDaskReader, OasisPandasReader]
+try:
+    from oasis_data_manager.df_reader.reader import OasisDaskReader
+except ImportError:
+    OasisDaskReader = None  # type: ignore[misc,assignment]
+
+READERS = [r for r in [OasisDaskReader, OasisPandasReader] if r is not None]
 
 storage = LocalStorage("/")
 

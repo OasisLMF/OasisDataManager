@@ -7,7 +7,7 @@ import httpcore
 import httpx
 import pandas as pd
 
-from oasis_data_manager.df_reader.config import InputReaderConfig, clean_config, get_df_reader
+from oasis_data_manager.df_reader.config import clean_config, get_df_reader
 from oasis_data_manager.df_reader.reader import OasisReader
 from oasis_data_manager.filestore.backends.local import LocalStorage
 
@@ -63,10 +63,7 @@ class ComplexData:
 
     def get_df_reader(self, filepath, **kwargs) -> OasisReader:
         df_reader_config = clean_config(
-            InputReaderConfig(
-                filepath=filepath,
-                engine="oasis_data_manager.df_reader.reader.OasisDaskReader",
-            )
+            {"filepath": filepath, "engine": "OasisDaskReader"}
         )
         df_reader_config["engine"]["options"]["storage"] = self.storage
 
@@ -86,6 +83,8 @@ class ComplexData:
             return self.get_df_reader(self.filename if self.filename else self.url)
 
     def run(self):
+        # CSV and Parquet files are read directly by the df_reader, so fetch() is not needed.
+        # Only formats the df_reader can't handle (e.g. custom binary formats) require fetch().
         if self.fetch_required and self.filename:
             extension = pathlib.Path(self.filename).suffix
             self.fetch_required = extension not in [".parquet", ".pq", ".csv"]

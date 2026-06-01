@@ -44,6 +44,7 @@ setup(
     exclude_package_data={
         "": ["__pycache__", "*.py[co]"],
     },
+    license="BSD-3-Clause",
     description="",
     long_description="",
     long_description_content_type="text/markdown",

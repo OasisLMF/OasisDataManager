@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pandas as pd
 import pytest
+
 from dask import dataframe as dd
 
 from oasis_data_manager.complex.complex import Adjustment, ComplexData
