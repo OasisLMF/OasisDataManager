@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oasis-data-manager"
+dynamic = ["version"]
+description = ""
+readme = "README.md"
+license = { text = "BSD-3-Clause" }
+authors = [{ name = "Oasis LMF", email = "support@oasislmf.org" }]
+requires-python = ">=3.6"
+dependencies = [
+    "fastparquet",
+    "fsspec>=2023.12.2",
+    "pandas",
+    "typing_extensions",
+    "xxhash",
+]
+
+[project.optional-dependencies]
+extra = [
+    "adlfs",
+    "boto3",
+    "dask>2024.1.1",
+    "dask-geopandas",
+    "dask-sql",
+    "distributed",
+    "geopandas==0.14.4",
+    "pyogrio",
+    "s3fs>=2023.12.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/OasisLMF/OasisDataManager"
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "tests.*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "oasis_data_manager.__version__" }
+
+[tool.setuptools.package-data]
+"*" = []
+
+[tool.flake8]
+exclude = ".tox,.git,docs,.ropeproject,.hypothesis"
+max-line-length = 150
+ignore = ["E501", "E402"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=oasis_data_manager --cov-report=term-missing"
