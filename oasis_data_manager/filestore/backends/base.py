@@ -69,7 +69,7 @@ class BaseStorage(object):
     fsspec_filesystem_class: Optional[Type[fsspec.AbstractFileSystem]]
 
     def __init__(
-        self, root_dir="", cache_dir: Union[str, None] = "/tmp/data-cache", logger=None
+        self, root_dir="", cache_dir: Union[str, None] = "/tmp/data-cache", logger=None, **kwargs
     ):
         # Use for caching files across multiple runs, set value 'None' or 'False' to disable
         self.cache_root = cache_dir
