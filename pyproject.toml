@@ -19,16 +19,28 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-extra = [
-    "adlfs",
-    "boto3",
+geo = [
+    "geopandas==0.14.4",
+    "pyogrio",
+]
+dask = [
+    "oasis-data-manager[geo]",
     "dask>2024.1.1",
     "dask-geopandas",
     "dask-sql",
     "distributed",
-    "geopandas==0.14.4",
-    "pyogrio",
+]
+s3 = [
     "s3fs>=2023.12.2",
+]
+azure = [
+    "adlfs",
+]
+extra = [
+    "oasis-data-manager[geo]",
+    "oasis-data-manager[dask]",
+    "oasis-data-manager[s3]",
+    "oasis-data-manager[azure]",
 ]
 
 [project.urls]
