@@ -32,28 +32,19 @@ jobs:
        GITHUB_CONTEXT: ${{ toJson(github) }}
 
     - name: Clone
-      uses: actions/checkout@v3
-      if: inputs.odm_branch == ''
+      uses: actions/checkout@v4
       with:
         repository: OasisLMF/OasisDataManager
-
-    - name: Clone (workflow_call)
-      uses: actions/checkout@v3
-      if: inputs.odm_branch != ''
-      with:
-        repository: OasisLMF/OasisDataManager
-        ref: ${{ inputs.odm_branch }}
+        ref: ${{ inputs.odm_branch || github.ref }}
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.9
-    - run: pip install pip-tools wheel
+        python-version: '3.10'
+    - run: pip install build
 
     - name: Create package
-      run: |
-        python setup.py sdist
-        python setup.py bdist_wheel
+      run: python -m build
 
     - name: Build Output
       id: build_package
