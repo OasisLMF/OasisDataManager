@@ -19,6 +19,7 @@ class S3StorageConfig(BaseStorageConfig):
     access_key: NotRequired[str]
     secret_key: NotRequired[str]
     endpoint_url: NotRequired[str]
+    public_bucket: NotRequired[bool]
     file_overwrite: NotRequired[bool]
     object_parameters: NotRequired[dict]
     auto_create_bucket: NotRequired[bool]
