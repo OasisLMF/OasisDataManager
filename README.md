@@ -23,6 +23,34 @@ pip install -r requirements.txt
 pip install -e ".[extra]"
 ```
 
+### Optional dependencies
+
+The package ships several optional extras. Install any combination with `pip install oasis-data-manager[<extra>,...]`.
+
+| Extra | What it adds | Key packages |
+|---|---|---|
+| `s3` | AWS S3 storage backend (`AwsS3Storage`) | `s3fs` |
+| `azure` | Azure Blob Storage backend (`AzureABFSStorage`) | `adlfs` |
+| `geo` | Geospatial DataFrame support (GeoDataFrame read/write) | `geopandas`, `pyogrio` |
+| `dask` | Dask reader, distributed execution, and geospatial Dask support | `dask`, `dask-sql`, `distributed`, `dask-geopandas` (includes `geo`) |
+| `extra` | Everything above bundled together | all of the above |
+
+**Examples**
+
+```bash
+# S3 support only
+pip install "oasis-data-manager[s3]"
+
+# Both cloud backends
+pip install "oasis-data-manager[s3,azure]"
+
+# Dask reader (also installs geo)
+pip install "oasis-data-manager[dask]"
+
+# Everything
+pip install "oasis-data-manager[extra]"
+```
+
 ---
 
 ## Quick start
