@@ -62,3 +62,9 @@ ignore = ["E501", "E402"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=oasis_data_manager --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
