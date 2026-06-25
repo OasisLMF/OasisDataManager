@@ -46,6 +46,9 @@ extra = [
 [project.urls]
 Homepage = "https://github.com/OasisLMF/OasisDataManager"
 
+[tool.setuptools]
+license-files = []
+
 [tool.setuptools.packages.find]
 exclude = ["tests", "tests.*"]
 
