@@ -19,6 +19,7 @@ class AwsS3Storage(BaseStorage):
         access_key: Optional[str] = None,
         secret_key: Optional[str] = None,
         endpoint_url: Optional[str] = None,
+        public_bucket: bool = False,
         file_overwrite=True,
         object_parameters: Optional[dict] = None,
         auto_create_bucket=False,
@@ -92,6 +93,7 @@ class AwsS3Storage(BaseStorage):
         self.access_key = access_key
         self.secret_key = secret_key
         self.endpoint_url = endpoint_url
+        self.public_bucket = public_bucket
         self.file_overwrite = file_overwrite
         self.object_parameters = object_parameters
         self.auto_create_bucket = auto_create_bucket
@@ -128,6 +130,7 @@ class AwsS3Storage(BaseStorage):
             "access_key": self.access_key,
             "secret_key": self.secret_key,
             "endpoint_url": self.endpoint_url,
+            "public_bucket": self.public_bucket,
             "file_overwrite": self.file_overwrite,
             "object_parameters": self.object_parameters,
             "auto_create_bucket": self.auto_create_bucket,
@@ -163,7 +166,7 @@ class AwsS3Storage(BaseStorage):
         if self.reduced_redundancy:
             s3_additional_kwargs["StorageClass"] = "REDUCED_REDUNDANCY"
 
-        return {
+        options = {
             "key": self.access_key,
             "secret": self.secret_key,
             "token": self.security_token,
@@ -174,6 +177,9 @@ class AwsS3Storage(BaseStorage):
                 "region_name": self.region_name,
             },
         }
+        if self.public_bucket:
+            options["anon"] = True
+        return options
 
     def _strip_signing_parameters(self, url):
         """Duplicated Unsiged URLs from Django-Stroage

@@ -69,7 +69,7 @@ class BaseStorage(object):
     fsspec_filesystem_class: Optional[Type[fsspec.AbstractFileSystem]]
 
     def __init__(
-        self, root_dir="", cache_dir: Union[str, None] = "/tmp/data-cache", logger=None
+        self, root_dir="", cache_dir: Union[str, None] = "/tmp/data-cache", logger=None, **kwargs
     ):
         # Use for caching files across multiple runs, set value 'None' or 'False' to disable
         self.cache_root = cache_dir
@@ -458,9 +458,10 @@ class BaseStorage(object):
     def open(self, path, *args, **kwargs):
         if self._is_valid_url(path):
             with tempfile.TemporaryDirectory() as d:
-                with open(
-                    self.get_from_cache(path, no_cache_target=os.path.join(d, "f"))
-                ) as f:
+                local_path = self.get_from_cache(path, no_cache_target=os.path.join(d, "f"))
+                if local_path is None:
+                    raise FileNotFoundError(f"No such file or directory: '{path}'")
+                with open(local_path) as f:
                     yield f
         else:
             with self.fs.open(path, *args, **kwargs) as f:
@@ -470,7 +471,8 @@ class BaseStorage(object):
     def with_fileno(self, path, mode="rb"):
         with tempfile.TemporaryDirectory() as d:
             target = os.path.join(d, "fileno")
-            path = self.get_from_cache(path, no_cache_target=target)
-
-            with open(path, mode) as f:
+            local_path = self.get_from_cache(path, no_cache_target=target)
+            if local_path is None:
+                raise FileNotFoundError(f"No such file or directory: '{path}'")
+            with open(local_path, mode) as f:
                 yield f
