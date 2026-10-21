@@ -36,11 +36,15 @@ s3 = [
 azure = [
     "adlfs",
 ]
+zstd = [
+    "zstandard; python_version < '3.14'",
+]
 extra = [
     "oasis-data-manager[geo]",
     "oasis-data-manager[dask]",
     "oasis-data-manager[s3]",
     "oasis-data-manager[azure]",
+    "oasis-data-manager[zstd]",
 ]
 
 [project.urls]

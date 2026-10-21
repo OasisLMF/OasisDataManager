@@ -7,3 +7,4 @@ distributed
 geopandas==0.14.4
 pyogrio
 s3fs>=2023.12.2
+zstandard; python_version < '3.14'

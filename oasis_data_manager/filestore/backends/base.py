@@ -2,7 +2,7 @@ import contextlib
 import logging
 import os
 import shutil
-import tarfile
+# import tarfile  # archive handling moved to oasis_data_manager.filestore.archive
 import tempfile
 import uuid
 from pathlib import Path
@@ -14,6 +14,7 @@ import fsspec
 from fsspec.implementations.dirfs import DirFileSystem
 
 from oasis_data_manager.errors import OasisDataManagerException
+from oasis_data_manager.filestore.archive import ARCHIVE_SUFFIXES, GZIP, compress_dir, extract_archive, validate_compression
 import xxhash
 
 LOG_FILE_SUFFIX = "txt"
@@ -69,11 +70,24 @@ class BaseStorage(object):
     fsspec_filesystem_class: Optional[Type[fsspec.AbstractFileSystem]]
 
     def __init__(
-        self, root_dir="", cache_dir: Union[str, None] = "/tmp/data-cache", logger=None, **kwargs
+        self,
+        root_dir="",
+        cache_dir: Union[str, None] = "/tmp/data-cache",
+        logger=None,
+        archive_compression: str = GZIP,
+        archive_compresslevel: Optional[int] = None,
+        archive_threads: int = -1,
+        **kwargs
     ):
         # Use for caching files across multiple runs, set value 'None' or 'False' to disable
         self.cache_root = cache_dir
         self.root_dir = root_dir
+
+        # How directories are archived by `put`: 'gz' or 'zst', level (None for the format default)
+        # and zstd worker threads (-1 for every core)
+        self.archive_compression = validate_compression(archive_compression)
+        self.archive_compresslevel = archive_compresslevel
+        self.archive_threads = archive_threads
 
         self.logger = logger or logging.getLogger()
         self._fs: Optional[StrictRootDirFs] = None
@@ -86,8 +100,17 @@ class BaseStorage(object):
     def to_config(self) -> dict:
         return {
             "storage_class": f"{self.__module__}.{type(self).__name__}",
-            "options": self.config_options,
+            "options": {
+                **self.config_options,
+                "archive_compression": self.archive_compression,
+                "archive_compresslevel": self.archive_compresslevel,
+                "archive_threads": self.archive_threads,
+            },
         }
+
+    def archive_suffix(self, compression=None):
+        """Filename extension of directory archives written by `put`, e.g. `tar.gz`"""
+        return ARCHIVE_SUFFIXES[validate_compression(compression or self.archive_compression)]
 
     @property
     def config_options(self):
@@ -148,11 +171,9 @@ class BaseStorage(object):
                 os.path.join(temp_dir_path, os.path.basename(archive_fp)),
                 subdir=storage_subdir,
             )
-            with tarfile.open(local_archive_path) as f:
-                os.makedirs(directory, exist_ok=True)
-                f.extractall(directory)
+            extract_archive(local_archive_path, directory)
 
-    def compress(self, archive_fp, directory, arcname=None):
+    def compress(self, archive_fp, directory, arcname=None, compression=None):
         """Compress a directory
 
         Parameters
@@ -166,10 +187,19 @@ class BaseStorage(object):
         :param arcname: If given, `arcname' set an alternative
                         name for the file in the archive.
         :type arcname: str
+
+        :param compression: `gz` or `zst`, defaults to `self.archive_compression`
+        :type compression: str
         """
         arcname = arcname if arcname else "/"
-        with tarfile.open(archive_fp, "w:gz") as tar:
-            tar.add(directory, arcname=arcname)
+        compress_dir(
+            archive_fp,
+            directory,
+            arcname=arcname,
+            compression=compression or self.archive_compression,
+            compresslevel=self.archive_compresslevel,
+            threads=self.archive_threads,
+        )
 
     def get_from_cache(self, reference, required=False, no_cache_target=None):
         """
@@ -326,7 +356,7 @@ class BaseStorage(object):
 
         return None
 
-    def put(self, reference, filename=None, subdir="", suffix=None, arcname=None):
+    def put(self, reference, filename=None, subdir="", suffix=None, arcname=None, compression=None):
         """Place object in storage
 
         Top level send to storage function,
@@ -348,8 +378,12 @@ class BaseStorage(object):
                         name for the file in the archive.
         :type arcname: str
 
-        :param suffix: Set the filename extension defaults to `tar.gz`
+        :param suffix: Set the filename extension defaults to the archive suffix, e.g. `tar.gz`
         :type suffix: str
+
+        :param compression: Archive compression for a directory, `gz` or `zst`,
+                            defaults to `self.archive_compression`
+        :type compression: str
 
         :return: access storage reference returned from self._store_file, self._store_dir
                  This will either be a pre-signed URL or absolute filepath
@@ -370,14 +404,14 @@ class BaseStorage(object):
             return storage_location
 
         elif os.path.isdir(reference):
-            ext = "tar.gz" if not suffix else suffix
+            ext = self.archive_suffix(compression) if not suffix else suffix
             filename = filename if filename else self._get_unique_filename(ext)
             storage_path = os.path.join(subdir, filename) if subdir else filename
             self.fs.mkdirs(os.path.dirname(storage_path), exist_ok=True)
 
             self.logger.info("Store dir: {} -> {}".format(reference, storage_path))
             with tempfile.NamedTemporaryFile() as f:
-                self.compress(f.name, reference, arcname)
+                self.compress(f.name, reference, arcname, compression=compression)
                 self.fs.put(f.name, storage_path)
             return storage_path
         else:
