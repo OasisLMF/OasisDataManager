@@ -79,7 +79,7 @@ def compress_dir(archive_fp, directory, arcname="/", compression=GZIP, compressl
         options = {zstd.CompressionParameter.compression_level: level}
         if threads and zstd.CompressionParameter.nb_workers.bounds()[1] > 0:
             options[zstd.CompressionParameter.nb_workers] = threads
-        with zstd.ZstdFile(archive_fp, "w", options=options) as zf, tarfile.open(fileobj=zf, mode="w|") as tar:
+        with tarfile.open(archive_fp, "w:zst", options=options) as tar:
             tar.add(directory, arcname=arcname)
         return
 
@@ -93,16 +93,12 @@ def compress_dir(archive_fp, directory, arcname="/", compression=GZIP, compressl
 def open_archive(archive_fp):
     """Open a gzip, zstd or uncompressed tar archive for reading
 
-    zstd archives are opened as a stream: iterate or `extractall`, don't seek back to earlier members.
+    zstd archives read with the `zstandard` package are opened as a stream: iterate or `extractall`,
+    don't seek back to earlier members.
     """
-    if not is_zstd(archive_fp):
+    # tarfile detects zstd itself when compression.zstd is available
+    if _stdlib_zstd() or not is_zstd(archive_fp):
         with tarfile.open(archive_fp) as tar:
-            yield tar
-        return
-
-    zstd = _stdlib_zstd()
-    if zstd:
-        with zstd.ZstdFile(archive_fp, "r") as zf, tarfile.open(fileobj=zf, mode="r|") as tar:
             yield tar
         return
 
