@@ -18,7 +18,6 @@ from oasis_data_manager.filestore.archive import ARCHIVE_SUFFIXES, GZIP, compres
 import xxhash
 
 LOG_FILE_SUFFIX = "txt"
-ARCHIVE_FILE_SUFFIX = "tar.gz"
 
 
 class MissingInputsException(OasisDataManagerException):
