@@ -109,6 +109,12 @@ class AzureABFSStorage(BaseStorage):
         if self._connection_string:
             return self._connection_string
 
+        if not self.account_name:
+            # No credentials configured: return None so adlfs falls back to the
+            # AZURE_STORAGE_CONNECTION_STRING (or other AZURE_STORAGE_*) env vars
+            # instead of connecting to an account literally named "None".
+            return None
+
         cs_parts = [
             f"DefaultEndpointsProtocol={'https' if self.azure_ssl else 'http'}",
             f"AccountName={self.account_name}",
@@ -130,7 +136,7 @@ class AzureABFSStorage(BaseStorage):
         )
 
         params = {}
-        if encode_params:
+        if encode_params and self.connection_string:
             params["connection_string"] = self.connection_string
 
         return (
