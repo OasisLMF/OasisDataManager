@@ -1,7 +1,32 @@
 import contextlib
-from pathlib import Path
+import re
+from pathlib import Path, PurePath
 
 from oasis_data_manager.filestore.backends.base import BaseStorage, MissingInputsException
+
+WINDOWS_DRIVE_PATH = re.compile(r"/[A-Za-z]:/")
+
+
+def path_to_file_url(path: PurePath) -> str:
+    """Build the ``file://`` URL of an absolute local path.
+
+    The path part of the URL always starts with ``/``: ``C:\\data\\loc.csv`` becomes
+    ``file:///C:/data/loc.csv``, not ``file://C:\\data\\loc.csv``, in which ``C:\\data\\loc.csv``
+    is the host and the path is empty. POSIX paths are unchanged (``file:///data/loc.csv``).
+    Characters are not percent-encoded, as before.
+    """
+    posix_path = path.as_posix()
+    if not posix_path.startswith("/"):
+        posix_path = "/" + posix_path
+    return f"file://{posix_path}"
+
+
+def file_url_to_path(url: str) -> str:
+    """Inverse of ``path_to_file_url``: the local path of a ``file://`` URL."""
+    path = url[len("file://"):] if url.startswith("file://") else url
+    if WINDOWS_DRIVE_PATH.match(path):
+        path = path[1:]
+    return path
 
 
 class LocalStorage(BaseStorage):
@@ -23,7 +48,7 @@ class LocalStorage(BaseStorage):
         filename = (
             filename if filename is not None else self._get_unique_filename(suffix)
         )
-        return filename, f"file://{Path(self.root_dir, filename)}"
+        return filename, path_to_file_url(Path(self.root_dir, filename).absolute())
 
     def get_fsspec_storage_options(self):
         return {}

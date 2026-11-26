@@ -2,6 +2,7 @@ import pyarrow.dataset as ds
 from functools import reduce
 
 from .base import OasisReader
+from ...filestore.backends.local import file_url_to_path
 
 
 class OasisPyarrowReader(OasisReader):
@@ -57,7 +58,7 @@ class OasisPyarrowReader(OasisReader):
             _, uri = self.storage.get_storage_url(
                 self.filename_or_buffer, encode_params=False
             )
-            source = uri.replace('file://', '')
+            source = file_url_to_path(uri)
         else:
             source = self.filename_or_buffer
 
