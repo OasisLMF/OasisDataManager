@@ -116,3 +116,55 @@ def test_storage_from_config___archive_options_are_kept():
 
         assert (result.archive_compression, result.archive_compresslevel, result.archive_threads) == ("zst", 5, 4)
         assert result.archive_suffix() == "tar.zst"
+
+
+def _archive_with(members_dir, archive_fp, extra=None):
+    with tarfile.open(archive_fp, "w:gz") as tar:
+        tar.add(members_dir, arcname=".")
+        if extra:
+            info, data = extra
+            tar.addfile(info, data)
+
+
+@pytest.fixture
+def data_filter_default(monkeypatch):
+    """Python 3.14's default extraction filter, on any Python that has filters."""
+    if not hasattr(tarfile, "data_filter"):
+        pytest.skip("tarfile extraction filters not available")
+    monkeypatch.setattr(tarfile.TarFile, "extraction_filter", staticmethod(tarfile.data_filter))
+
+
+def test_extract___absolute_symlinks_are_kept_under_data_filter_default(data_filter_default):
+    """OasisPlatform run directories link model data into static/ with absolute symlinks (OasisPlatform#1500)."""
+    with TemporaryDirectory() as model_data, TemporaryDirectory() as src, TemporaryDirectory() as work, \
+            TemporaryDirectory() as dst:
+        target = Path(model_data, "footprint.bin")
+        target.write_bytes(b"footprint")
+        Path(src, "static").mkdir()
+        os.symlink(target, Path(src, "static", "footprint.bin"))
+        archive_fp = os.path.join(work, "run.tar.gz")
+        _archive_with(src, archive_fp)
+
+        extract_archive(archive_fp, dst)
+
+        link = Path(dst, "static", "footprint.bin")
+        assert link.is_symlink() and os.readlink(link) == str(target)
+        assert link.read_bytes() == b"footprint"
+
+
+def test_extract___members_outside_the_directory_are_refused():
+    if not hasattr(tarfile, "tar_filter"):
+        pytest.skip("tarfile extraction filters not available")
+    import io
+    with TemporaryDirectory() as root:
+        src, dst = Path(root, "src"), Path(root, "dst")
+        src.mkdir()
+        Path(src, "ok.txt").write_text("ok")
+        info = tarfile.TarInfo("../escape.txt")
+        info.size = 3
+        archive_fp = os.path.join(root, "bad.tar.gz")
+        _archive_with(src, archive_fp, extra=(info, io.BytesIO(b"bad")))
+
+        with pytest.raises(tarfile.OutsideDestinationError):
+            extract_archive(archive_fp, dst)
+        assert not Path(root, "escape.txt").exists()
