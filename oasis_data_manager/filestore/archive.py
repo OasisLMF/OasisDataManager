@@ -108,6 +108,15 @@ def open_archive(archive_fp):
 
 
 def extract_archive(archive_fp, directory):
+    """Extract archive_fp into directory.
+
+    Uses the 'tar' extraction filter. Python 3.14 made 'data' the default, which rejects links
+    to absolute paths; OasisPlatform run directories link model data into ``static/`` with
+    absolute symlinks, so extraction failed part way (OasisPlatform#1500). 'tar' keeps those
+    links but still refuses members that would be written outside ``directory``. Python
+    versions without extraction filters (< 3.10.12) extract as before.
+    """
+    filter_kwargs = {"filter": "tar"} if hasattr(tarfile, "tar_filter") else {}
     with open_archive(archive_fp) as tar:
         os.makedirs(directory, exist_ok=True)
-        tar.extractall(directory)
+        tar.extractall(directory, **filter_kwargs)
